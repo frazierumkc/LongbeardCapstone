@@ -141,11 +141,62 @@ public class UserAccount {
     }
 
 
-    // Specailized Funcitons(Update Needed Object Functions)
+       // Specailized User Account Mehtods(Update 3/3/2025 Needed Object Functions)
 
-    //Function passwordCheck:
-    //Function emailCheck:
+    // Function passwordCheck: 
+    // Password: characters should be alphanumeric or one of the special characters !?@#$%^&~ 
+    public boolean passwordCheck() {
+        if (password == null || password.isEmpty()) {
+            return false;
+        }
+        // Regex:
+        // [A-Za-z0-9]     - uppercase letter, lowercase letter or digit
+        // [!?@#$%\^&~]    - special characters
+        // +                - one or more characters can be allowed
+        return password.matches("[A-Za-z0-9!?@#$%\\^&~]+");
+    }
+
+
+    // Function emailCheck:
+    // Email: characters should be alphanumeric or a period '.' or '@'
+    public boolean emailCheck() {
+        if (email == null || email.isEmpty()) {
+            return false;
+        }
+        //regex: 
+        // "[A-Za-z0-9.@]+" - uppercase or lowercase letter, a digit, a period, or at
+        // +                - one or more characters can be allowed
+        return email.matches("[A-Za-z0-9.@]+");
+    }
+
     //Function depositFunds:
+    //Adds funds to the account balance
+    public void depositFunds(double amount) {
+        if (amount <= 0) {
+            System.out.println("Deposit Error: Amount must be greater than zero.");
+            return;
+        }
+        accountBalance += amount;
+        System.out.println("Deposit successful! \n Account Balance: " + accountBalance);
+    }
+
+
     //Function withdrawFunds:
+    //Subtracts funds from user account
+    public void withdrawFunds(double amount) {
+        //Case: withdraw amount is 0 or less
+        if (amount <= 0) {
+            System.out.println("Withdrawal amount must be greater than zero.");
+            return;
+        }
+        //Case: account Balance is insufficient for withdraw amount
+        if (amount > accountBalance) {
+            System.out.println("Insufficient Funds! \n Account Balance: " + accountBalance);
+            return;
+        }
+        accountBalance -= amount;
+        System.out.println("Withdrawal successful. New balance is: " + accountBalance);
+    }
+    
 }
 
