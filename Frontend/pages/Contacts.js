@@ -49,7 +49,7 @@ const Contacts = () => {
   };
 
   return (
-    <div style={{ padding: "20px", marginTop: "10vh" }}>
+    <div style={{ padding: "20px", marginTop: "10vh", height: "90vh", overflow: "auto" }}>
       <h1 style={{ textAlign: "center", color: "green" }}>Contacts</h1>
 
       <div
