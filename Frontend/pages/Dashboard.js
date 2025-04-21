@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import axios from "axios";
 
 const Dashboard = () => {
   const [showForm, setShowForm] = useState(false);
@@ -116,39 +117,68 @@ const Dashboard = () => {
   const [requests, setRequests] = useState([]);
   const [modalData, setModalData] = useState(null);
 
-  const fetchRequests = () => {
-    // Placeholder for API call
-    return Promise.resolve([
-      {
-        id: 1,
-        title: 'Dinner',
-        cost: "120",
-        date: '2025-04-12',
-        time: '7:00:34 PM',
-        partner: 'Firstname Lastname',
-        method: '%',
-        value: "40", // in percent
-      },
-      {
-        id: 2,
-        title: 'Rent',
-        cost: "36",
-        date: '2025-04-11',
-        time: '9:30:00 PM',
-        partner: 'Jane Smith',
-        method: '$',
-        value: "12",
-      },
-    ]);
+  const fetchRequests = async () => {
+    try {
+      const response = await axios.get("http://localhost:8080/api/requests?account_id=2");
+      const data = response.data;
+  
+      const parsedRequests = data.map((req) => {
+        return {
+          id: req.split_id,
+          title: req.expense_title,
+          partner: `${req.first_name} ${req.last_name}`,
+          cost: req.expense_amount.toFixed(2),
+          value: req.split_amount.toFixed(2),
+          date: req.expense_date_time.split("T")[0],
+          time: new Date(req.expense_date_time).toLocaleTimeString("en-US", { hour12: true }),
+          status: req.member_approval_status === null ? "pending" : req.member_approval_status ? "accepted" : "decline"
+        };
+      });
+  
+      setRequests(parsedRequests);
+    } catch (error) {
+      console.error("Failed to fetch requests:", error);
+    }
   };
+  
+
+  const fetchExpenses = async () => {
+    try {
+      const response = await axios.get("http://localhost:8080/api/expenses?account_id=2");
+      const data = response.data;
+  
+      const parsedExpenses = data.map((exp) => {
+        const partnerShare = exp.partnerShare ?? 0;
+        const youShare = exp.youShare ?? 0;
+  
+        return {
+          title: exp.expense_title,
+          cost: exp.expense_amount.toString(),
+          date: exp.expense_date_time.split("T")[0],
+          time: new Date(exp.expense_date_time).toLocaleTimeString("en-US", { hour12: true }),
+          partner: exp.partnerName || "Partner", // Optional chaining fallback
+          method: "%",
+          value: exp.partnerPercentage?.toString() || "50",
+          splitResult: {
+            partner: partnerShare,
+            you: youShare,
+          },
+        };
+      });
+  
+      setRecentSplits(parsedExpenses);
+    } catch (error) {
+      console.error("Failed to fetch expenses:", error);
+    }
+  };
+  
+  
 
   useEffect(() => {
-    // Simulate fetching data from API
-    fetchRequests().then(data => {
-      const withStatus = data.map(req => ({ ...req, status: 'pending' }));
-      setRequests(withStatus);
-    });
+    fetchRequests();
+    fetchExpenses();
   }, []);
+  
 
   const confirmResponse = () => {
     if (modalData) {
@@ -381,7 +411,7 @@ const Dashboard = () => {
             <p><strong>Requested by:</strong> {req.partner}</p>
             <p><strong>Cost:</strong> ${req.cost}</p>
             <p><strong>Date:</strong> {req.date} at {req.time}</p>
-            <p><strong>Requested of you:</strong> {req.method === '%' ? `$${req.cost * req.value / 100} (${req.value}%)` : `$${req.value}`}</p>
+            <p><strong>Requested of you:</strong> {req.value}</p>
             <div style={{ marginTop: '0.5rem' }}>
               {req.status === 'pending' ? (
                 <>
