@@ -134,7 +134,7 @@ const History = () => {
   };
 
   return (
-    <div style={{ marginTop: "10vh", padding: "20px" }}>
+    <div style={{ marginTop: "10vh", padding: "20px", height: "90vh", overflow: "auto" }}>
       <h1 style={{ textAlign: "center", color: "green" }}>Split History</h1>
       <div
         style={{
