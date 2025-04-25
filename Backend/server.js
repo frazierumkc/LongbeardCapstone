@@ -10,8 +10,35 @@ app.use(express.json());
 // GET Section (Fetching existing data from the database)
 // -------------------------------------------------------------------------------------------------------------------
 
-// Get an account id given by an email and password
+// Get profile information given by an account id
 app.get('/api/accounts', async (req, res) => {
+  const accountId = req.query.account_id;
+  
+    if (!accountId) {
+      return res.status(400).json({ error: "Missing account_id" });
+    }
+
+try {
+  const [rows] = await db.query(`
+    SELECT 
+      u.account_id,
+      u.first_name,
+      u.last_name,
+      u.account_balance
+    FROM UserAccount u
+    WHERE u.account_id = ?
+    `,
+    [accountId]);
+
+  res.json(rows);
+} catch (err) {
+  console.error(err);
+  res.status(500).send("Error fetching account data");
+}
+});
+
+// Get an account id given by an email and password
+app.get('/api/accounts/id', async (req, res) => {
   const accountEmail = req.query.email;
   const accountPassword = req.query.password;
 
@@ -32,7 +59,56 @@ try {
   res.json(rows);
 } catch (err) {
   console.error(err);
-  res.status(500).send("Error fetching expenses");
+  res.status(500).send("Error fetching account id");
+}
+});
+
+// Get an account dark mode boolean given by an account id
+app.get('/api/accounts/darkmode', async (req, res) => {
+  const accountId = req.query.account_id;
+  
+    if (!accountId) {
+      return res.status(400).json({ error: "Missing account_id" });
+    }
+
+try {
+  const [rows] = await db.query(`
+    SELECT 
+      u.dark_mode
+    FROM UserAccount u
+    WHERE u.account_id = ?
+    `,
+    [accountId]);
+
+  res.json(rows);
+} catch (err) {
+  console.error(err);
+  res.status(500).send("Error fetching dark mode setting");
+}
+});
+
+// Get settings information given by an account id (password not given)
+app.get('/api/settings', async (req, res) => {
+  const accountId = req.query.account_id;
+  
+    if (!accountId) {
+      return res.status(400).json({ error: "Missing account_id" });
+    }
+
+try {
+  const [rows] = await db.query(`
+    SELECT 
+      u.email,
+      u.dark_mode
+    FROM UserAccount u
+    WHERE u.account_id = ?
+    `,
+    [accountId]);
+
+  res.json(rows);
+} catch (err) {
+  console.error(err);
+  res.status(500).send("Error fetching settings");
 }
 });
 
@@ -52,6 +128,7 @@ app.get('/api/expenses', async (req, res) => {
         e.expense_title,
         e.expense_amount,
         e.expense_date_time,
+        sh.approval_status,
         CONCAT(u.first_name, ' ', u.last_name) AS partner_name,
         sm.split_amount AS partner_share,
         (e.expense_amount - sm.split_amount) AS you_share,
@@ -330,6 +407,180 @@ app.post('/api/contacts', async (req, res) => {
 // PUT Section (Updating existing data in the database)
 // -------------------------------------------------------------------------------------------------------------------
 
+// Update a first name given by an account id
+app.put('/api/accounts/firstname', async (req, res) => {
+  const { account_id, first_name } = req.body;
+
+  if (!account_id || !first_name) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  try {
+    const [result] = await db.query(
+      `
+      UPDATE UserAccount
+      SET first_name = ?
+      WHERE account_id = ?
+      `,
+      [first_name, account_id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'No account with that ID found' });
+    }
+
+    res.status(200).json({ message: 'First name updated'});
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to change first name' });
+  }
+});
+
+// Update a first name given by an account id
+app.put('/api/accounts/lastname', async (req, res) => {
+  const { account_id, last_name } = req.body;
+
+  if (!account_id || !last_name) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  try {
+    const [result] = await db.query(
+      `
+      UPDATE UserAccount
+      SET last_name = ?
+      WHERE account_id = ?
+      `,
+      [last_name, account_id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'No account with that ID found' });
+    }
+
+    res.status(200).json({ message: 'Last name updated'});
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to change last name' });
+  }
+});
+
+// Update an account balance given by an account id
+app.put('/api/accounts/balance', async (req, res) => {
+  const { account_id, balance } = req.body;
+
+  if (!account_id || !balance) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  try {
+    const [result] = await db.query(
+      `
+      UPDATE UserAccount
+      SET account_balance = ?
+      WHERE account_id = ?
+      `,
+      [balance, account_id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'No account with that ID found' });
+    }
+
+    res.status(200).json({ message: 'Account balance updated'});
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to change account balance' });
+  }
+});
+
+// Update an email given by an account id
+app.put('/api/accounts/email', async (req, res) => {
+  const { account_id, email } = req.body;
+
+  if (!account_id || !email) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  try {
+    const [result] = await db.query(
+      `
+      UPDATE UserAccount
+      SET email = ?
+      WHERE account_id = ?
+      `,
+      [email, account_id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'No account with that ID found' });
+    }
+
+    res.status(200).json({ message: 'Account email updated'});
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to change account email' });
+  }
+});
+
+// Update an email given by an account id
+app.put('/api/accounts/password', async (req, res) => {
+  const { account_id, password } = req.body;
+
+  if (!account_id || !password) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  try {
+    const [result] = await db.query(
+      `
+      UPDATE UserAccount
+      SET password = ?
+      WHERE account_id = ?
+      `,
+      [password, account_id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'No account with that ID found' });
+    }
+
+    res.status(200).json({ message: 'Account password updated'});
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to change account password' });
+  }
+});
+
+// Update a darkmode settings given by an account id
+app.put('/api/accounts/darkmode', async (req, res) => {
+  const { account_id, darkmode } = req.body;
+
+  if (!account_id || !darkmode) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  try {
+    const [result] = await db.query(
+      `
+      UPDATE UserAccount
+      SET dark_mode = ?
+      WHERE account_id = ?
+      `,
+      [darkmode, account_id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'No account with that ID found' });
+    }
+
+    res.status(200).json({ message: 'Account darkmode setting updated'});
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to change account darkmode setting' });
+  }
+});
+
 // Update a split to be approved or denied by a given spit member
 app.put('/api/splitmember', async (req, res) => {
   const { split_id, account_id, member_approval_status } = req.body;
@@ -356,7 +607,7 @@ app.put('/api/splitmember', async (req, res) => {
     res.status(200).json({ message: 'Request status updated'});
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Failed to add expense' });
+    res.status(500).json({ error: 'Failed to update approval status' });
   }
 });
 
@@ -385,9 +636,15 @@ app.put('/api/requests/pending', async (req, res) => {
     res.status(200).json({ message: 'Request status updated'});
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Failed to add expense' });
+    res.status(500).json({ error: 'Failed to update approval status' });
   }
 });
+
+// -------------------------------------------------------------------------------------------------------------------
+// DELETE Section (Deleting existing data from the database)
+// -------------------------------------------------------------------------------------------------------------------
+
+//Todo
 
 app.listen(8080, () => {
   console.log("Server is running on http://localhost:8080");
