@@ -644,7 +644,37 @@ app.put('/api/requests/pending', async (req, res) => {
 // DELETE Section (Deleting existing data from the database)
 // -------------------------------------------------------------------------------------------------------------------
 
-//Todo
+app.delete('/api/contacts', async (req, res) => {
+  const accountId = req.query.account_id;
+  const contactId = req.query.contact_id;
+
+  try {
+    // Check if it exists first
+    const [check] = await db.query(
+      `
+      SELECT * FROM Contact
+      WHERE account_id = ?
+      AND contact_id = ?
+      `,
+      [accountId ,contactId]);
+    if (check.length === 0) {
+      return res.status(404).json({ error: 'Contact not found' });
+    }
+
+    await db.query(
+      `
+      DELETE FROM Contact
+      WHERE account_id = ?
+      AND contact_id = ?
+      `, 
+      [accountId, contactId]);
+
+    res.json({ message: 'Contact deleted successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to delete contact' });
+  }
+});
 
 app.listen(8080, () => {
   console.log("Server is running on http://localhost:8080");
