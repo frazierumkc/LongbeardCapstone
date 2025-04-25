@@ -117,9 +117,41 @@ const Dashboard = () => {
   const [requests, setRequests] = useState([]);
   const [modalData, setModalData] = useState(null);
 
+  // Fetch all expenses owned by a single account
+  const fetchExpenses = async () => {
+    try {
+      const response = await axios.get("http://localhost:8080/api/expenses?account_id=2");
+      const data = response.data;
+  
+      const parsedExpenses = data.map((exp) => {
+        const partnerShare = exp.partner_share ?? 0;
+        const youShare = exp.you_share ?? 0;
+  
+        return {
+          title: exp.expense_title,
+          cost: exp.expense_amount.toString(),
+          date: exp.expense_date_time.split("T")[0],
+          time: new Date(exp.expense_date_time).toLocaleTimeString("en-US", { hour12: true }),
+          partner: exp.partner_name || "Partner", // Optional chaining fallback
+          method: "%",
+          value: exp.partner_percentage?.toString() || "50",
+          splitResult: {
+            partner: partnerShare,
+            you: youShare,
+          },
+        };
+      });
+  
+      setRecentSplits(parsedExpenses);
+    } catch (error) {
+      console.error("Failed to fetch expenses:", error);
+    }
+  };
+
+  // Fetch all requests toward a single account
   const fetchRequests = async () => {
     try {
-      const response = await axios.get("http://localhost:8080/api/requests?account_id=2");
+      const response = await axios.get("http://localhost:8080/api/requests/pending?account_id=2");
       const data = response.data;
   
       const parsedRequests = data.map((req) => {
@@ -141,43 +173,35 @@ const Dashboard = () => {
     }
   };
   
-
-  const fetchExpenses = async () => {
-    try {
-      const response = await axios.get("http://localhost:8080/api/expenses?account_id=2");
-      const data = response.data;
-  
-      const parsedExpenses = data.map((exp) => {
-        const partnerShare = exp.partnerShare ?? 0;
-        const youShare = exp.youShare ?? 0;
-  
-        return {
-          title: exp.expense_title,
-          cost: exp.expense_amount.toString(),
-          date: exp.expense_date_time.split("T")[0],
-          time: new Date(exp.expense_date_time).toLocaleTimeString("en-US", { hour12: true }),
-          partner: exp.partnerName || "Partner", // Optional chaining fallback
-          method: "%",
-          value: exp.partnerPercentage?.toString() || "50",
-          splitResult: {
-            partner: partnerShare,
-            you: youShare,
-          },
-        };
-      });
-  
-      setRecentSplits(parsedExpenses);
-    } catch (error) {
-      console.error("Failed to fetch expenses:", error);
-    }
-  };
-  
-  
-
   useEffect(() => {
     fetchRequests();
     fetchExpenses();
   }, []);
+  
+  // Submit a single expense
+  const submitExpense = async (expenseTitle, expenseAmount, expenseDateTime) => {
+    const newExpense = {
+      account_id: 2,
+      expense_title: expenseTitle,
+      expense_amount: expenseAmount,
+      expense_date_time: expenseDateTime
+    };
+  
+    try {
+      const response = await fetch('http://localhost:8080/api/expenses', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newExpense),
+      });
+  
+      const data = await response.json();
+      console.log('Server response:', data);
+    } catch (error) {
+      console.error('Submission error:', error);
+    }
+  };
   
 
   const confirmResponse = () => {

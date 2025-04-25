@@ -72,20 +72,20 @@ const Settings = () => {
   };
 
   // Styles (similar to ProfilePage)
-  const headerStyle = {
-    width: '100%',
-    backgroundColor: 'green',
-    padding: '10px 20px',
-    color: 'white',
-    display: 'flex',
-    alignItems: 'center',
-    boxSizing: 'border-box'
-  };
+  // const headerStyle = {
+  //   width: '100%',
+  //   backgroundColor: '#008000',
+  //   padding: '10px 20px',
+  //   color: 'white',
+  //   display: 'flex',
+  //   alignItems: 'center',
+  //   boxSizing: 'border-box'
+  // };
 
-  const logoStyle = {
-    fontWeight: 'bold',
-    fontSize: '1.2em'
-  };
+  // const logoStyle = {
+  //   fontWeight: 'bold',
+  //   fontSize: '1.2em'
+  // };
 
   const containerStyle = {
     display: 'flex',
@@ -95,7 +95,7 @@ const Settings = () => {
   };
 
   const boxStyle = {
-    border: '2px solid green',
+    border: '2px solid #008000',
     borderRadius: '5px',
     padding: '10px 20px',
     width: '300px',
@@ -103,7 +103,7 @@ const Settings = () => {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    boxShadow: '0 2px 5px rgba(0, 0, 0, 0.1)'
+    boxShadow: '0 2px 5px rgba(0, 0, 0, 0.2)'
   };
 
   const inputStyle = {
@@ -118,10 +118,10 @@ const Settings = () => {
     padding: '5px 10px',
     fontSize: '1em',
     cursor: 'pointer',
-    border: '2px solid green',
+    border: '2px solid #008000',
     borderRadius: '5px',
     backgroundColor: 'white',
-    color: 'green'
+    color: '#008000'
   };
 
   const modalOverlayStyle = {
@@ -145,7 +145,7 @@ const Settings = () => {
   };
 
   return (
-    <div>
+    <div style={{ height: "90vh", marginTop: "10vh"}}>
       {/* Settings Data Container */}
       <div style={containerStyle}>
         {/* Email */}
@@ -179,6 +179,32 @@ const Settings = () => {
               Change
             </button>
           </div>
+        </div>
+      </div>
+
+      {/* Bar at bottom of screen */}
+      <div
+      style={{
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        width: '100vw',
+        backgroundColor: 'rgb(0, 128, 0)',
+        color: 'white',
+        padding: '10px 20px',
+        fontSize: '14px',
+        zIndex: 1000,
+        boxShadow: '0 -2px 10px rgba(0, 0, 0, 0.2)',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+      }}
+      >
+        <div style={{ flex: 1, textAlign: 'left' }}>
+          © 2025 Longbeard Crew
+        </div>
+        <div style={{ flex: 1, textAlign: 'right', marginRight: 40 }}>
+          Built with React, Express (Node.js), and MySQL.
         </div>
       </div>
 
