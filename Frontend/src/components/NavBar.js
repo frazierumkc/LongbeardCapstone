@@ -4,7 +4,7 @@ import { Link, useLocation } from "react-router-dom";
 const NavBar = () => {
   const location = useLocation();
   return (
-    <nav style={{ backgroundColor: "#0c8c34",
+    <nav style={{ backgroundColor: "#129238",
     height: "10vh", display: "flex",
     alignItems: "center",
     position: "fixed",
