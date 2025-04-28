@@ -227,9 +227,16 @@ const Dashboard = () => {
   // HTML/CSS code
   // --------------------------------------------------
   return (
-    <div style={{ display: "flex", height: "90vh", marginTop: "10vh", textAlign: "center"}}>
+    <div style={{ display: "flex",
+    height: "90vh",
+    marginTop: "10vh",
+    textAlign: "center",
+    backgroundImage: 'url("/triangle.png")',
+    backgroundSize: 'contain',
+    backgroundPosition: 'center',
+    backgroundRepeat: 'repeat',}}>
       <div style={{ flex: 1.618, padding: '1rem', overflow: "auto" }}>
-        <h1 style={{ color: "rgb(0, 128, 0)" }}>Recent Expenses</h1>
+        <h1 style={{ color: "white",  textShadow: "2px 2px 4px rgba(0, 0, 0, 0.5)" }}>Recent Expenses</h1>
         <button
           onClick={() => {
             if (showForm) {
@@ -251,10 +258,10 @@ const Dashboard = () => {
             backgroundColor: showForm ? "red" : "rgb(0, 128, 0)", // Change button color for cancel
             color: "white",
             border: "none",
-            borderRadius: "5px",
+            borderRadius: "30px",
             cursor: "pointer",
             transition: "all 0.2s ease",
-            boxShadow: "0 4px 6px rgba(0,0,0,0.2)",
+            boxShadow: "0 4px 6px rgba(0,70,0,0.6)",
           }}
         >
           {showForm ? "Cancel" : "+ Create new expense"} {/* Change button text */}
@@ -373,18 +380,18 @@ const Dashboard = () => {
                 <li
                   key={index}
                   style={{
-                    backgroundColor: "#66bb6a",
+                    backgroundColor: "rgba(0,128,0,0.8)",
                     color: "white",
                     padding: "20px",
-                    borderRadius: "20px",
+                    borderRadius: "30px",
                     width: "400px",
                     marginLeft: "auto",
                     marginRight: "auto",
-                    boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
+                    boxShadow: "0 4px 8px rgba(0,70,0,0.8)",
                     marginBottom: "20px",
                   }}
                 >
-                  <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", textShadow: "2px 2px 4px rgba(0, 0, 0, 0.4)" }}>
                     <div style={{ textAlign: "left" }}>
                       <div>
                         <strong>Title:</strong> {split.title}
@@ -417,18 +424,20 @@ const Dashboard = () => {
       </div>
 
       {/* Requests section */}
-      <div style={{ flex: 1, padding: '1rem', backgroundColor: '#66bb6a', overflow: 'auto' }}>
-        <h1 style={{ color: '#fff' }}>Recent Requests</h1>
+      <div style={{ flex: 1, padding: '1rem', backgroundColor: "rgba(0,128,0,0.8)", boxShadow: '0 2px 8px rgba(0,0,0,0.8)',overflow: 'auto' }}>
+        <h1 style={{ color: '#fff',  textShadow: "2px 2px 4px rgba(0, 80, 0, 0.8)"  }}>Recent Requests</h1>
 
         {requests.map(req => (
           <div
             key={req.id}
             style={{
-              backgroundColor: '#fff',
-              borderRadius: '20px',
+              backgroundColor: "rgba(0, 0, 0, 0.3)",
+              borderRadius: '30px',
               padding: '1rem',
               marginTop: '1rem',
-              boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+              boxShadow: '0 2px 5px rgba(0,70,0,0.8)',
+              color: "white",
+              textShadow: "2px 2px 4px rgba(0, 60, 0, 0.6)"
             }}
           >
             <h2 style={{margin: 0}}>{req.title}</h2>
@@ -445,7 +454,8 @@ const Dashboard = () => {
                       backgroundColor: '#4caf50',
                       color: '#fff',
                       border: 'none',
-                      borderRadius: '4px',
+                      borderRadius: '30px',
+                      boxShadow: '0 2px 5px rgba(0,70,0,0.8)',
                       cursor: "pointer" }}
                     onClick={() => openModal(req.id, 'accept')}
                   >
@@ -456,7 +466,8 @@ const Dashboard = () => {
                       backgroundColor: '#e53935',
                       color: '#fff',
                       border: 'none',
-                      borderRadius: '4px',
+                      borderRadius: '30px',
+                      boxShadow: '0 2px 5px rgba(0,70,0,0.8)',
                       cursor: "pointer" }}
                     onClick={() => openModal(req.id, 'decline')}
                   >

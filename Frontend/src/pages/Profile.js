@@ -292,7 +292,7 @@ const Profile = () => {
         padding: '10px 20px',
         fontSize: '14px',
         zIndex: 1000,
-        boxShadow: '0 -2px 10px rgba(0, 0, 0, 0.2)',
+        boxShadow: '0 -3px 5px rgba(0,70,0,0.4)',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',

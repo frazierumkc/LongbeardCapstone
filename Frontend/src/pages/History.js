@@ -45,6 +45,26 @@ const History = () => {
       value: 100,
       status: "Accepted",
     },
+    {
+      title: "Hotel",
+      date: "2025-04-12",
+      initiator: "Dana",
+      partner: "You",
+      amount: 200,
+      method: "$",
+      value: 100,
+      status: "Accepted",
+    },
+    {
+      title: "Hotel",
+      date: "2025-04-12",
+      initiator: "Dana",
+      partner: "You",
+      amount: 200,
+      method: "$",
+      value: 100,
+      status: "Accepted",
+    },
   ];
 
   const cardStyle = {
@@ -135,7 +155,6 @@ const History = () => {
 
   return (
     <div style={{ marginTop: "10vh", padding: "20px", height: "90vh", overflow: "auto" }}>
-      <h1 style={{ textAlign: "center", color: "green" }}>Split History</h1>
       <div
         style={{
           display: "flex",

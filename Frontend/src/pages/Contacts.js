@@ -49,8 +49,7 @@ const Contacts = () => {
   };
 
   return (
-    <div style={{ padding: "20px", marginTop: "10vh", height: "90vh", overflow: "auto" }}>
-      <h1 style={{ textAlign: "center", color: "green" }}>Contacts</h1>
+    <div style={{ marginTop: "10vh", height: "90vh", overflow: "auto" }}>
 
       <div
         style={{
@@ -58,6 +57,7 @@ const Contacts = () => {
           gridTemplateColumns: "repeat(4, 1fr)",
           gap: "20px",
           marginTop: "30px",
+          padding: "20px",
         }}
       >
         {/*Add Contact Box */}
