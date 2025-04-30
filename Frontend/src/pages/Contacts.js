@@ -35,87 +35,121 @@ const Contacts = () => {
     setContacts(updated);
   };
 
+  const inputStyle = {
+    marginBottom: "5px",
+    padding: "5px",
+    borderRadius: "10px",
+    border: "2px solid black", // ✅ black border
+    backgroundColor: "white",
+    color: "black",
+  };
+
   const boxStyle = {
     height: "200px",
-    minHeight: "200px",
-    borderRadius: "10px",
+    borderRadius: "30px",
     padding: "20px",
     textAlign: "center",
     display: "flex",
     flexDirection: "column",
     justifyContent: "center",
-    border: "2px solid green",
     position: "relative",
+    boxShadow: "0 4px 8px rgba(0, 70, 0, 0.8)",
+    color: "white",
+    textShadow: "2px 2px 4px rgba(0, 60, 0, 0.6)",
   };
 
   return (
-    <div style={{ marginTop: "10vh", height: "90vh", overflow: "auto" }}>
+    <div
+      style={{
+        marginTop: "10vh",
+        height: "90vh",
+        overflow: "auto",
+        backgroundImage: 'url("/triangle.png")',
+        backgroundSize: "contain",
+        backgroundPosition: "center",
+        backgroundRepeat: "repeat",
+        padding: "0 40px",
+        boxSizing: "border-box",
+      }}
+    >
+      <h1
+        style={{
+          textAlign: "center",
+          color: "white",
+          textShadow: "2px 2px 6px rgba(0, 0, 0, 0.8)",
+          margin: "20px 0",
+        }}
+      >
+        Contacts
+      </h1>
 
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(4, 1fr)",
+          gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
           gap: "20px",
           marginTop: "30px",
-          padding: "20px",
+          paddingBottom: "30px",
         }}
       >
-        {/*Add Contact Box */}
+        {/* Add Contact Box */}
         <div
           style={{
             ...boxStyle,
-            backgroundColor: "#e0f7e9",
-            border: "2px dashed green",
+            backgroundColor: "rgba(0,128,0,0.6)",
+            border: "2px dashed white",
+            justifyContent: "flex-start",
           }}
         >
-          <h3 style={{ color: "green" }}>+ Add New Contact</h3>
+          <h3 style={{ color: "white" }}>+ Add New Contact</h3>
           <input
             type="text"
             placeholder="First Name"
             value={firstName}
             onChange={(e) => setFirstName(e.target.value)}
-            style={{ marginBottom: "5px", padding: "5px" }}
+            style={inputStyle}
           />
           <input
             type="text"
             placeholder="Last Name"
             value={lastName}
             onChange={(e) => setLastName(e.target.value)}
-            style={{ marginBottom: "5px", padding: "5px" }}
+            style={inputStyle}
           />
           <input
             type="text"
             placeholder="User ID"
             value={userId}
             onChange={(e) => setUserId(e.target.value)}
-            style={{ marginBottom: "10px", padding: "5px" }}
+            style={{ ...inputStyle, marginBottom: "10px" }}
           />
           <button
             onClick={handleAddContact}
             style={{
-              padding: "8px",
+              padding: "10px",
               backgroundColor: "green",
               color: "white",
               border: "none",
-              borderRadius: "5px",
+              borderRadius: "20px",
+              fontWeight: "bold",
               cursor: "pointer",
+              boxShadow: "0 2px 5px rgba(0, 70, 0, 0.8)",
             }}
           >
             Save
           </button>
         </div>
 
-        {/*Contact Cards with Delete and Split Count */}
+        {/* Contact Cards */}
         {contacts.map((contact, index) => (
           <div
             key={index}
             style={{
               ...boxStyle,
-              backgroundColor: "#f9fff9",
+              backgroundColor: "rgba(0, 128, 0, 0.8)",
               justifyContent: "space-between",
             }}
           >
-            {/*red Delete button */}
             <button
               onClick={() => handleDeleteContact(index)}
               style={{
@@ -126,11 +160,11 @@ const Contacts = () => {
                 backgroundColor: "#e53935",
                 color: "#fff",
                 border: "none",
-                borderRadius: "4px",
+                borderRadius: "30px",
                 fontSize: "0.8rem",
                 fontWeight: "bold",
                 cursor: "pointer",
-                boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+                boxShadow: "0 2px 4px rgba(0, 0, 0, 0.3)",
               }}
               title="Delete Contact"
             >
@@ -138,11 +172,11 @@ const Contacts = () => {
             </button>
 
             <div>
-              <h4 style={{ color: "green" }}>
+              <h4 style={{ fontSize: "1.4rem", marginBottom: "0.5rem" }}>
                 {contact.firstName} {contact.lastName}
               </h4>
             </div>
-            <div style={{ color: "gray", fontSize: "0.9rem" }}>
+            <div style={{ fontSize: "1rem", opacity: 0.8 }}>
               Splits: {contact.splitCount}
             </div>
           </div>
@@ -153,4 +187,5 @@ const Contacts = () => {
 };
 
 export default Contacts;
+
 
