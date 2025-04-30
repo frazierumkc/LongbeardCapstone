@@ -39,7 +39,7 @@ const Contacts = () => {
     marginBottom: "5px",
     padding: "5px",
     borderRadius: "10px",
-    border: "2px solid black", // ✅ black border
+    border: "2px solid black",
     backgroundColor: "white",
     color: "black",
   };
@@ -56,6 +56,7 @@ const Contacts = () => {
     boxShadow: "0 4px 8px rgba(0, 70, 0, 0.8)",
     color: "white",
     textShadow: "2px 2px 4px rgba(0, 60, 0, 0.6)",
+    border: "2px solid white", // ← white border added
   };
 
   return (
@@ -97,7 +98,7 @@ const Contacts = () => {
           style={{
             ...boxStyle,
             backgroundColor: "rgba(0,128,0,0.6)",
-            border: "2px dashed white",
+            border: "2px dashed white", // keep distinct for add box
             justifyContent: "flex-start",
           }}
         >
@@ -187,5 +188,6 @@ const Contacts = () => {
 };
 
 export default Contacts;
+
 
 
