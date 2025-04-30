@@ -43,6 +43,8 @@ const Profile = () => {
     width: '90%',
     maxWidth: '400px',
     margin: '20px 0',
+    border: '2px solid white'
+
   };
 
   const boxStyle = {
