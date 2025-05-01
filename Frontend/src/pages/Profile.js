@@ -36,15 +36,13 @@ const Profile = () => {
   const sectionStyle = {
     backgroundColor: 'rgba(0, 128, 0, 0.8)',
     color: 'white',
-    textShadow: '1px 1px 3px black',
+    textShadow: '2px 2px 4px rgba(0, 0, 0, 0.4)"',
     padding: '25px',
-    borderRadius: '20px',
+    borderRadius: '40px',
     boxShadow: '0 4px 8px rgba(0, 70, 0, 0.8)',
     width: '90%',
     maxWidth: '400px',
     margin: '20px 0',
-    border: '2px solid white'
-
   };
 
   const boxStyle = {
@@ -58,13 +56,14 @@ const Profile = () => {
   const buttonStyle = {
     marginLeft: '10px',
     padding: '5px 10px',
-    fontSize: '1em',
+    fontWeight: 'bold',
+    fontSize: '1rem',
     cursor: 'pointer',
-    border: '2px solid white',
-    borderRadius: '5px',
-    backgroundColor: 'transparent',
+    border: 'none',
+    borderRadius: '30px',
+    backgroundColor: 'rgba(0,112,51,1)',
     color: 'white',
-    textShadow: 'none',
+    textShadow: '2px 2px 4px rgba(0, 0, 0, 0.4)',
   };
 
   const inputStyle = {
@@ -72,7 +71,7 @@ const Profile = () => {
     padding: '8px',
     fontSize: '1em',
     marginTop: '10px',
-    borderRadius: '8px',
+    borderRadius: '30px',
     backgroundColor: 'white',
     color: 'black',
     border: '2px solid green',
@@ -91,14 +90,15 @@ const Profile = () => {
   };
 
   const modalContentStyle = {
-    backgroundColor: '#fff',
-    color: '#333',
+    backgroundColor: 'rgba(0, 128, 0, 0.8)',
+    color: 'white',
+    textShadow: '2px 2px 4px rgba(0, 0, 0, 0.4)',
     padding: '20px',
-    borderRadius: '10px',
+    borderRadius: '30px',
     width: '300px',
     boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
     position: 'relative',
-    border: '3px solid green'
+    border: 'none'
   };
 
   const closeIconStyle = {
@@ -108,7 +108,7 @@ const Profile = () => {
     fontSize: '20px',
     fontWeight: 'bold',
     cursor: 'pointer',
-    color: 'green',
+    color: 'white',
   };
 
   //Profile & Settings
@@ -140,6 +140,7 @@ const Profile = () => {
 
   return (
     <div style={{
+      marginTop: "10vh",
       backgroundImage: 'url("/triangle.png")',
       backgroundSize: 'contain',
       backgroundPosition: 'center',
@@ -219,7 +220,7 @@ const Profile = () => {
                   }}
                   style={inputStyle}
                 />
-                <button onClick={saveChanges} style={{ ...buttonStyle, marginTop: '15px', borderColor: 'green', color: 'green' }}>Save</button>
+                <button onClick={saveChanges} style={{ ...buttonStyle, marginTop: '15px', color: 'white' }}>Save</button>
               </div>
             )}
           </div>

@@ -271,18 +271,18 @@ const Dashboard = () => {
           <div
             style={{
               marginTop: "30px",
-              backgroundColor: "#66bb6a",
+              backgroundColor: "rgba(0,128,0,0.8)",
               color: "white",
               padding: "20px",
-              borderRadius: "20px",
+              borderRadius: "40px",
               width: "400px",
               marginLeft: "auto",
               marginRight: "auto",
-              boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
+              boxShadow: "0 4px 8px rgba(0,70,0,0.8)",
               position: "relative",
             }}
           >
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", textShadow: "2px 2px 4px rgba(0, 0, 0, 0.4)" }}>
               <div style={{ textAlign: "left" }}>
                 <div>
                   <strong>Title:</strong>
@@ -326,10 +326,10 @@ const Dashboard = () => {
               style={{
                 margin: "20px auto",
                 display: "block",
-                backgroundColor: "#008000",
+                backgroundColor: "rgba(0,112,51,1)",
                 color: "white",
                 padding: "10px 20px",
-                borderRadius: "10px",
+                borderRadius: "30px",
                 border: "none",
                 fontWeight: "bold",
                 fontSize: "1rem",

@@ -7,6 +7,8 @@ const History = () => {
     { title: "Movie Tickets", date: "2025-04-13", initiator: "You", partner: "Charlie", amount: 50, method: "$", value: 25, status: "Accepted" },
     { title: "Gas", date: "2025-04-12", initiator: "You", partner: "Dana", amount: 40, method: "%", value: 50, status: "Accepted" },
     { title: "Concert", date: "2025-04-11", initiator: "You", partner: "Eve", amount: 120, method: "$", value: 60, status: "Declined" },
+    { title: "Concert", date: "2025-04-11", initiator: "You", partner: "Eve", amount: 120, method: "$", value: 60, status: "Declined" },
+    { title: "Concert", date: "2025-04-11", initiator: "You", partner: "Eve", amount: 120, method: "$", value: 60, status: "Declined" },
   ];
 
   const receivedSplits = [
@@ -14,6 +16,8 @@ const History = () => {
     { title: "Hotel", date: "2025-04-12", initiator: "Dana", partner: "You", amount: 200, method: "$", value: 100, status: "Accepted" },
     { title: "Flight", date: "2025-04-11", initiator: "Alice", partner: "You", amount: 300, method: "%", value: 50, status: "Declined" },
     { title: "Lunch", date: "2025-04-10", initiator: "Bob", partner: "You", amount: 25, method: "$", value: 10, status: "Accepted" },
+    { title: "Museum Tickets", date: "2025-04-09", initiator: "Eve", partner: "You", amount: 40, method: "%", value: 30, status: "Accepted" },
+    { title: "Museum Tickets", date: "2025-04-09", initiator: "Eve", partner: "You", amount: 40, method: "%", value: 30, status: "Accepted" },
     { title: "Museum Tickets", date: "2025-04-09", initiator: "Eve", partner: "You", amount: 40, method: "%", value: 30, status: "Accepted" },
   ];
 
@@ -28,13 +32,12 @@ const History = () => {
 
   const cardStyle = {
     backgroundColor: "rgba(0,128,0,0.8)",
-    border: "2px solid white",
-    borderRadius: "30px",
-    padding: "20px",
+    borderRadius: "40px",
+    padding: "15px",
     marginBottom: "15px",
     boxShadow: "0 4px 8px rgba(0, 70, 0, 0.8)",
     color: "white",
-    textShadow: "1px 1px 3px black",
+    textShadow: "2px 2px 4px rgba(0, 0, 0, 0.4)",
     wordWrap: "break-word",
     overflowWrap: "break-word"
   };
@@ -48,7 +51,7 @@ const History = () => {
 
    
     return (
-      <div style={{ ...cardStyle }} key={`${split.title}-${split.date}-${split.initiator}`}>
+      <div style={{ ...cardStyle}} key={`${split.title}-${split.date}-${split.initiator}`}>
         <div style={{ textAlign: "center", marginBottom: "10px" }}>
           <span style={getStatusStyle(split.status)}>
             {split.status === "Accepted" ? "✅ Accepted" : "❌ Declined"}
@@ -85,6 +88,7 @@ const History = () => {
 
   return (
     <div style={{
+      marginTop: "10vh",
       diplay: "flex",
       //padding: "20px",
       height: "90vh",
@@ -108,7 +112,7 @@ const History = () => {
             Initiated Splits
           </h2>
           <div style={{
-            height: "70vh",
+            height: "100vh",
             overflowY: "auto",
             padding: "0 5px", // Optional spacing inside
           }}>
@@ -122,7 +126,7 @@ const History = () => {
             Received Splits
           </h2>
           <div style={{
-            height: "70vh",
+            height: "100vh",
             overflowY: "auto",
             padding: "0 5px",
           }}>
