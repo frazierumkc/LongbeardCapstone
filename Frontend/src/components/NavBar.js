@@ -13,7 +13,7 @@ const NavBar = () => {
     boxShadow: '0 3px 5px rgba(0,70,0,0.4)',}}>
       <div style={{ marginRight: "auto", marginLeft: 20, color: "white", fontSize: "1.5rem", fontWeight: "bold" }}>Logo</div>
       <ul style={{ listStyle: "none", display: "flex", gap: "20px", marginRight: 20, padding: 0 }}>
-        {["Dashboard", "Contacts", "History", "Profile", "Settings"].map((page) => {
+        {["Dashboard", "Contacts", "History", "Profile"].map((page) => {
           const isActive = location.pathname === `/${page.toLowerCase()}`;
           return (
             <li key={page}>
