@@ -112,8 +112,8 @@ const History = () => {
             Initiated Splits
           </h2>
           <div style={{
-            height: "100vh",
-            overflowY: "auto",
+            height: "80vh",
+            overflow: "auto",
             padding: "0 5px", // Optional spacing inside
           }}>
             {initiatedSplits.map((split) => renderSplitCard(split, true))}
@@ -126,8 +126,8 @@ const History = () => {
             Received Splits
           </h2>
           <div style={{
-            height: "100vh",
-            overflowY: "auto",
+            height: "80vh",
+            overflow: "auto",
             padding: "0 5px",
           }}>
             {receivedSplits.map((split) => renderSplitCard(split, false))}
