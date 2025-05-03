@@ -676,6 +676,9 @@ app.delete('/api/contacts', async (req, res) => {
   }
 });
 
-app.listen(8080, () => {
-  console.log("Server is running on http://localhost:8080");
-});
+if (require.main === module) {
+  const PORT = process.env.PORT || 8080;
+  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+}
+
+module.exports = app;
