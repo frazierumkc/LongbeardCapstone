@@ -1,38 +1,105 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 
 const Contacts = () => {
+  const accountId = "1"; // Replace with logged-in user ID when available
+
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [userId, setUserId] = useState("");
+  const [userId, setUserId] = useState(""); // contact_id to add
+  const [contacts, setContacts] = useState([]);
+  const [searchTerm, setSearchTerm] = useState(""); // for filtering contacts
+  const [searchUserId, setSearchUserId] = useState(""); // for finding user to add
 
-  const [contacts, setContacts] = useState([
-    { firstName: "Alice", lastName: "Smith", splitCount: 3 },
-    { firstName: "Bob", lastName: "Johnson", splitCount: 5 },
-    { firstName: "Charlie", lastName: "Brown", splitCount: 1 },
-    { firstName: "Dana", lastName: "White", splitCount: 2 },
-    { firstName: "Eva", lastName: "Green", splitCount: 0 },
-    { firstName: "Frank", lastName: "Black", splitCount: 4 },
-    { firstName: "Grace", lastName: "Lee", splitCount: 1 },
-    { firstName: "Hank", lastName: "Moore", splitCount: 2 },
-    { firstName: "Ivy", lastName: "Taylor", splitCount: 0 },
-    { firstName: "Jack", lastName: "Anderson", splitCount: 6 },
-    { firstName: "Kara", lastName: "Wright", splitCount: 0 },
-  ]);
+  //including email and split count
+  const fetchContacts = () => {
+    axios
+      .get("http://localhost:8080/api/contacts", {
+        params: { account_id: accountId },
+      })
+      .then((res) => {
+        const formatted = res.data.map((c) => ({
+          firstName: c.first_name,
+          lastName: c.last_name,
+          contactId: c.contact_id,
+          email: c.email,             
+          splitCount: c.split_count || 0,
+        }));
+        setContacts(formatted);
+      })
+      .catch((err) => console.error("Failed to load contacts:", err));
+  };
 
+  useEffect(() => {
+    fetchContacts();
+  }, [accountId]);
+
+  // Search for a user by ID and prefill name fields
+  const handleSearchUser = () => {
+    if (!searchUserId) {
+      alert("Enter a User ID to search");
+      return;
+    }
+    axios
+      .get("http://localhost:8080/api/accounts", {
+        params: { account_id: searchUserId },
+      })
+      .then((res) => {
+        if (res.data.length === 0) {
+          alert("User not found");
+        } else {
+          const user = res.data[0];
+          setFirstName(user.first_name);
+          setLastName(user.last_name);
+          setUserId(searchUserId);
+        }
+      })
+      .catch((err) => {
+        console.error("Error fetching user:", err);
+        alert("Failed to fetch user data.");
+      });
+  };
+
+  // Add a new contact
   const handleAddContact = () => {
     if (firstName && lastName && userId) {
-      setContacts([{ firstName, lastName, splitCount: 0 }, ...contacts]);
-      setFirstName("");
-      setLastName("");
-      setUserId("");
+      axios
+        .post("http://localhost:8080/api/contacts", {
+          account_id: accountId,
+          contact_id: userId,
+          first_name: firstName,
+          last_name: lastName,
+        })
+        .then(() => {
+          setFirstName("");
+          setLastName("");
+          setUserId("");
+          setSearchUserId("");
+          fetchContacts();
+        })
+        .catch((err) => {
+          console.error("Error adding contact:", err);
+          alert("Failed to add contact.");
+        });
     } else {
       alert("Please fill in all fields");
     }
   };
 
-  const handleDeleteContact = (indexToDelete) => {
-    const updated = contacts.filter((_, index) => index !== indexToDelete);
-    setContacts(updated);
+  // Delete a contact
+  const handleDeleteContact = (contact) => {
+    axios
+      .delete("http://localhost:8080/api/contacts", {
+        params: {
+          account_id: accountId,
+          contact_id: contact.contactId,
+        },
+      })
+      .then(() => fetchContacts())
+      .catch((err) => {
+        console.error("Failed to delete contact:", err);
+        alert("Could not delete contact.");
+      });
   };
 
   const inputStyle = {
@@ -45,19 +112,28 @@ const Contacts = () => {
   };
 
   const boxStyle = {
-    height: "200px",
+    height: "240px",
     borderRadius: "30px",
     padding: "20px",
     textAlign: "center",
     display: "flex",
     flexDirection: "column",
-    justifyContent: "center",
+    justifyContent: "flex-start",
     position: "relative",
     boxShadow: "0 4px 8px rgba(0, 70, 0, 0.8)",
     color: "white",
     textShadow: "2px 2px 4px rgba(0, 60, 0, 0.6)",
-    border: "2px solid white", // ← white border added
+    border: "2px solid white",
   };
+
+  const filteredContacts = contacts.filter((contact) => {
+    const fullName = `${contact.firstName} ${contact.lastName}`.toLowerCase();
+    const term = searchTerm.toLowerCase();
+    return (
+      fullName.includes(term) ||
+      contact.contactId.toString().includes(term)
+    );
+  });
 
   return (
     <div
@@ -84,12 +160,30 @@ const Contacts = () => {
         Contacts
       </h1>
 
+      {/* Global Search Field */}
+      <div style={{ textAlign: "center", marginBottom: "20px" }}>
+        <input
+          type="text"
+          placeholder="Search contacts by name or ID..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          style={{
+            padding: "10px",
+            width: "300px",
+            borderRadius: "10px",
+            border: "2px solid white",
+            backgroundColor: "rgba(255,255,255,0.8)",
+            color: "black",
+          }}
+        />
+      </div>
+
       <div
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
           gap: "20px",
-          marginTop: "30px",
+          marginTop: "10px",
           paddingBottom: "30px",
         }}
       >
@@ -98,11 +192,48 @@ const Contacts = () => {
           style={{
             ...boxStyle,
             backgroundColor: "rgba(0,128,0,0.6)",
-            border: "2px dashed white", // keep distinct for add box
             justifyContent: "flex-start",
+            height: "240px" 
           }}
         >
-          <h3 style={{ color: "white" }}>+ Add New Contact</h3>
+          <h3 style={{ color: "white", marginBottom: "10px" }}>
+            + Add New Contact
+          </h3>
+          {/* Search existing user */}
+          <div style={{ display: "flex", marginBottom: "10px" }}>
+            <input
+              type="text"
+              placeholder="Search User ID..."
+              value={searchUserId}
+              onChange={(e) => setSearchUserId(e.target.value)}
+              style={{
+                ...inputStyle,
+                flexGrow: 1,
+                marginRight: "5px",
+              }}
+            />
+            <button
+              onClick={handleSearchUser}
+              style={{
+                padding: "8px 12px",
+                backgroundColor: "#fff",
+                color: "black",
+                border: "none",  
+                borderRadius: "8px",
+                fontWeight: "bold",
+                cursor: "pointer",
+                padding: "8px",       
+                width: "35px",       
+                height: "28px",       
+                display: "flex",     
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              Find
+            </button>
+          </div>
+          {/* Prefilled or manual entry */}
           <input
             type="text"
             placeholder="First Name"
@@ -117,12 +248,12 @@ const Contacts = () => {
             onChange={(e) => setLastName(e.target.value)}
             style={inputStyle}
           />
-          <input
+         <input
             type="text"
             placeholder="User ID"
-            value={userId}
-            onChange={(e) => setUserId(e.target.value)}
-            style={{ ...inputStyle, marginBottom: "10px" }}
+            value={userId}              
+            onChange={e => setUserId(e.target.value)}  
+            style={inputStyle}
           />
           <button
             onClick={handleAddContact}
@@ -142,7 +273,7 @@ const Contacts = () => {
         </div>
 
         {/* Contact Cards */}
-        {contacts.map((contact, index) => (
+        {filteredContacts.map((contact, index) => (
           <div
             key={index}
             style={{
@@ -152,7 +283,7 @@ const Contacts = () => {
             }}
           >
             <button
-              onClick={() => handleDeleteContact(index)}
+              onClick={() => handleDeleteContact(contact)}
               style={{
                 position: "absolute",
                 top: "10px",
@@ -176,6 +307,12 @@ const Contacts = () => {
               <h4 style={{ fontSize: "1.4rem", marginBottom: "0.5rem" }}>
                 {contact.firstName} {contact.lastName}
               </h4>
+              <div style={{ fontSize: "0.9rem", opacity: 0.7, marginBottom: "0.5rem" }}>
+                User ID: {contact.contactId}
+              </div>
+              <div style={{ fontSize: "0.9rem", opacity: 0.7, marginBottom: "0.5rem" }}>
+                Email: {contact.email}
+              </div>
             </div>
             <div style={{ fontSize: "1rem", opacity: 0.8 }}>
               Splits: {contact.splitCount}
@@ -186,6 +323,8 @@ const Contacts = () => {
     </div>
   );
 };
+
+export default Contacts;
 
 export default Contacts;
 
