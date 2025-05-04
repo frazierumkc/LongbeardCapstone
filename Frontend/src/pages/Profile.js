@@ -1,30 +1,133 @@
-import React, { useState } from 'react';
- 
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+
 
 //Profile & Settings
 
 const Profile = () => {
-  //Profile Sample data
-  const [firstName, setFirstName] = useState('John');
-  const [lastName, setLastName] = useState('Doe');
-  const [accountBalance, setAccountBalance] = useState(100);
-  const userId = '12345';
+  
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [accountBalance, setAccountBalance] = useState(0);
+  const userId = '1'; // Login FixMe: Replace with dynamic user id
 
-  //Setting sample data
-  const [email, setEmail] = useState('user@example.com');
-  const [password, setPassword] = useState('password123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [colorTheme, setColorTheme] = useState('Light');
 
-  // State for modal input fields
   const [fundsToAdd, setFundsToAdd] = useState('');
   const [newFirstName, setNewFirstName] = useState('');
   const [newLastName, setNewLastName] = useState('');
   const [newEmail, setNewEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [currentPasswordInput, setCurrentPasswordInput] = useState('');
   const [newColorTheme, setNewColorTheme] = useState(colorTheme);
 
   const [modal, setModal] = useState(null);
 
+  useEffect(() => {
+    axios
+      .get(`http://localhost:8080/api/accounts`, { params: { account_id: userId } })
+      .then((res) => {
+        const data = res.data[0];
+        setFirstName(data.first_name);
+        setLastName(data.last_name);
+        setAccountBalance(data.account_balance);
+      })
+      .catch((err) => console.error("Failed to load account data", err));
+
+    axios
+      .get(`http://localhost:8080/api/settings`, { params: { account_id: userId } })
+      .then((res) => {
+        const data = res.data[0];
+        setEmail(data.email);
+        setColorTheme(data.dark_mode === 1 ? 'Dark' : 'Light');
+        setNewColorTheme(data.dark_mode === 1 ? 'Dark' : 'Light');
+      })
+      .catch((err) => console.error("Failed to load settings", err));
+  }, [userId]);
+
+  const openModal = (type) => {
+    if (type === 'firstName') setNewFirstName(firstName);
+    if (type === 'lastName') setNewLastName(lastName);
+    if (type === 'funds') setFundsToAdd('');
+    if (type === 'email') setNewEmail(email);
+    if (type === 'password') {
+      setNewPassword('');
+      setCurrentPasswordInput('');
+    }
+    if (type === 'theme') setNewColorTheme(colorTheme);
+    setModal(type);
+  };
+
+  const closeModal = () => setModal(null);
+
+  const saveChanges = () => {
+    if (modal === 'firstName' && newFirstName.trim()) {
+      axios.put('http://localhost:8080/api/accounts/firstname', {
+        account_id: userId,
+        first_name: newFirstName.trim(),
+      });
+      setFirstName(newFirstName.trim());
+    }
+
+    if (modal === 'lastName' && newLastName.trim()) {
+      axios.put('http://localhost:8080/api/accounts/lastname', {
+        account_id: userId,
+        last_name: newLastName.trim(),
+      });
+      setLastName(newLastName.trim());
+    }
+
+    if (modal === 'funds' && !isNaN(parseFloat(fundsToAdd))) {
+      const amt = parseFloat(fundsToAdd);
+      if (amt > 0) {
+        const newBalance = accountBalance + amt;
+        axios.put('http://localhost:8080/api/accounts/balance', {
+          account_id: userId,
+          balance: newBalance,
+        });
+        setAccountBalance(newBalance);
+      }
+    }
+
+    if (modal === 'email' && newEmail.trim()) {
+      axios.put('http://localhost:8080/api/accounts/email', {
+        account_id: userId,
+        email: newEmail.trim(),
+      });
+      setEmail(newEmail.trim());
+    }
+
+    if (modal === 'password' && currentPasswordInput.trim() && newPassword.trim()) {
+      axios.put('http://localhost:8080/api/accounts/password', {
+        account_id: userId,
+        current_password: currentPasswordInput.trim(),
+        new_password: newPassword.trim(),
+      })
+      .then(() => {
+        setPassword(newPassword.trim());
+        alert("Password updated successfully.");
+      })
+      .catch((err) => {
+        console.error("Password update failed", err);
+        alert("Incorrect current password or server error.");
+      });
+    }
+
+    if (modal === 'theme') {
+      const darkmode = newColorTheme === 'Dark' ? 1 : 0;
+      axios.put('http://localhost:8080/api/accounts/darkmode', {
+        account_id: userId,
+        darkmode: darkmode,
+      });
+      setColorTheme(newColorTheme);
+    }
+
+    closeModal();
+  };
+
+  // Styles
   const containerStyle = {
     display: 'flex',
     flexDirection: 'column',
@@ -36,13 +139,15 @@ const Profile = () => {
   const sectionStyle = {
     backgroundColor: 'rgba(0, 128, 0, 0.8)',
     color: 'white',
-    textShadow: '2px 2px 4px rgba(0, 0, 0, 0.4)"',
+    textShadow: '2px 2px 4px rgba(0, 0, 0, 0.4)',
     padding: '25px',
     borderRadius: '40px',
     boxShadow: '0 4px 8px rgba(0, 70, 0, 0.8)',
     width: '90%',
     maxWidth: '400px',
     margin: '20px 0',
+    border: "2px solid white",  //white border around data boxes
+
   };
 
   const boxStyle = {
@@ -76,7 +181,7 @@ const Profile = () => {
     color: 'black',
     border: '2px solid green',
     outline: 'none',
-    boxSizing: 'border-box'
+    boxSizing: 'border-box',
   };
 
   const modalOverlayStyle = {
@@ -98,7 +203,9 @@ const Profile = () => {
     width: '300px',
     boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
     position: 'relative',
-    border: 'none'
+    border: 'none',
+    border: "2px solid white",  //white border around data boxes
+
   };
 
   const closeIconStyle = {
@@ -111,40 +218,12 @@ const Profile = () => {
     color: 'white',
   };
 
-  //Profile & Settings
-  const openModal = (type) => {
-    if (type === 'firstName') setNewFirstName(firstName);
-    if (type === 'lastName') setNewLastName(lastName);
-    if (type === 'funds') setFundsToAdd('');
-    if (type === 'email') setNewEmail(email);
-    if (type === 'password') setNewPassword(password);
-    if (type === 'theme') setNewColorTheme(colorTheme);
-    setModal(type);
-  };
-
-  const closeModal = () => setModal(null);
-
-  //Save changes handler
-  const saveChanges = () => {
-    if (modal === 'firstName' && newFirstName.trim()) setFirstName(newFirstName.trim());
-    if (modal === 'lastName' && newLastName.trim()) setLastName(newLastName.trim());
-    if (modal === 'funds' && !isNaN(parseFloat(fundsToAdd))) {
-      const amt = parseFloat(fundsToAdd);
-      if (amt > 0) setAccountBalance(prev => prev + amt);
-    }
-    if (modal === 'email' && newEmail.trim()) setEmail(newEmail.trim());
-    if (modal === 'password' && newPassword.trim()) setPassword(newPassword.trim());
-    if (modal === 'theme') setColorTheme(newColorTheme);
-    closeModal();
-  };
-
   return (
     <div style={{
       marginTop: "10vh",
       backgroundImage: 'url("/triangle.png")',
       backgroundSize: 'contain',
       backgroundPosition: 'center',
-
       backgroundRepeat: 'repeat',
       height: '90vh',
       overflow: 'auto',
@@ -195,19 +274,38 @@ const Profile = () => {
                   /> Dark
                 </label>
                 <div style={{ marginTop: '20px', textAlign: 'center' }}>
-                  <button onClick={saveChanges} style={{ ...buttonStyle, borderColor: 'green', color: 'green' }}>Save</button>
+                  <button onClick={saveChanges} style={{ ...buttonStyle, borderColor: 'g', color: 'white' }}>Save</button>
                 </div>
+              </div>
+            ) : modal === 'password' ? (
+              <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <input
+                  type="password"
+                  placeholder="Current Password"
+                  value={currentPasswordInput}
+                  onChange={(e) => setCurrentPasswordInput(e.target.value)}
+                  style={inputStyle}
+                />
+                <input
+                  type="password"
+                  placeholder="New Password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  style={{ ...inputStyle, marginTop: '10px' }}
+                />
+                <button onClick={saveChanges} style={{ ...buttonStyle, marginTop: '15px', color: 'white' }}>
+                  Save
+                </button>
               </div>
             ) : (
               <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 <input
-                  type={modal === 'password' ? 'password' : (modal === 'funds' ? 'number' : 'text')}
+                  type={modal === 'funds' ? 'number' : 'text'}
                   value={
                     modal === 'firstName' ? newFirstName :
                     modal === 'lastName' ? newLastName :
                     modal === 'funds' ? fundsToAdd :
                     modal === 'email' ? newEmail :
-                    modal === 'password' ? newPassword :
                     ''
                   }
                   onChange={(e) => {
@@ -216,11 +314,10 @@ const Profile = () => {
                     if (modal === 'lastName') setNewLastName(val);
                     if (modal === 'funds') setFundsToAdd(val);
                     if (modal === 'email') setNewEmail(val);
-                    if (modal === 'password') setNewPassword(val);
                   }}
                   style={inputStyle}
                 />
-                <button onClick={saveChanges} style={{ ...buttonStyle, marginTop: '15px', color: 'white' }}>Save</button>
+                <button onClick={saveChanges} style={{ ...buttonStyle, marginTop: '15px'}}>Save</button>
               </div>
             )}
           </div>
@@ -231,6 +328,7 @@ const Profile = () => {
 };
 
 export default Profile;
+
 
 
 
