@@ -2,14 +2,19 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 
 const History = () => {
-  const userId = "1"; // Replace with dynamic user ID from login
+  // Id of currently logged in user
+  const getCurrentId = () => {
+    return localStorage.getItem('currentId');
+  };
+  const currentId = getCurrentId();
+
   const [initiatedSplits, setInitiatedSplits] = useState([]);
   const [receivedSplits, setReceivedSplits] = useState([]);
 
   useEffect(() => {
     // Fetch splits initiated by this user
     axios
-      .get("http://localhost:8080/api/expenses", { params: { account_id: userId } })
+      .get("http://localhost:8080/api/expenses/notpending", { params: { account_id: currentId } })
       .then((res) => {
         const formatted = res.data.map((item) => ({
           title: item.expense_title,
@@ -19,7 +24,7 @@ const History = () => {
           amount: item.expense_amount,
           method: "$",
           value: item.you_share,          // how much you paid
-          status: item.approval_status === 1 ? "Accepted" : "Declined",
+          status: item.member_approval_status === 1 ? "Accepted" : "Declined",
         }));
         setInitiatedSplits(formatted);
       })
@@ -27,7 +32,7 @@ const History = () => {
 
     //Fetch splits received by this user (as member)
     axios
-      .get("http://localhost:8080/api/requests/notpending", { params: { account_id: userId } })
+      .get("http://localhost:8080/api/requests/notpending", { params: { account_id: currentId } })
       .then((res) => {
         const formatted = res.data.map((item) => ({
           title: item.expense_title,
@@ -42,7 +47,7 @@ const History = () => {
         setReceivedSplits(formatted);
       })
       .catch((err) => console.error("Error fetching received splits:", err));
-  }, [userId]);
+  }, [currentId]);
 
   const getStatusStyle = (status) => ({
     color: status === "Accepted" ? "lightgreen" : "salmon",
@@ -113,14 +118,12 @@ const History = () => {
       display: "flex",
       gap: "80px",
       justifyContent: "center",
-      alignItems: "flex-start",
-      flexWrap: "wrap",
       height: "90vh",
-      overflow: "auto", //Page Scroll
       backgroundImage: 'url("/triangle.png")',
       backgroundSize: "contain",
       backgroundPosition: 'center',
       backgroundRepeat: "repeat",
+      overflow: "hidden",
       padding: "0 40px",//0 40 fixed extra page scroll wheel
     }}>
       <div style={{ flex: 1, minWidth: "100px", maxWidth: "450px" }}>
