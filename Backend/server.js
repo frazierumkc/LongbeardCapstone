@@ -128,7 +128,7 @@ app.get('/api/expenses', async (req, res) => {
         e.expense_title,
         e.expense_amount,
         e.expense_date_time,
-        sh.approval_status,
+        sm.member_approval_status,
         CONCAT(u.first_name, ' ', u.last_name) AS partner_name,
         sm.split_amount AS partner_share,
         (e.expense_amount - sm.split_amount) AS you_share,
@@ -138,6 +138,7 @@ app.get('/api/expenses', async (req, res) => {
       JOIN SplitMember sm ON sh.split_id = sm.split_id
       JOIN UserAccount u ON sm.account_id = u.account_id
       WHERE e.account_id = ?
+      ORDER BY e.expense_date_time DESC
       `,
       [accountId]);
 
@@ -146,6 +147,44 @@ app.get('/api/expenses', async (req, res) => {
     console.error(err);
     res.status(500).send("Error fetching expenses");
   }
+});
+
+// Get all non-pending expenses owned by one account
+app.get('/api/expenses/notpending', async (req, res) => {
+  const accountId = req.query.account_id;
+
+  if (!accountId) {
+    return res.status(400).json({ error: "Missing account_id" });
+  }
+
+try {
+  const [rows] = await db.query(`
+    SELECT 
+      e.account_id,
+      e.expense_id,
+      e.expense_title,
+      e.expense_amount,
+      e.expense_date_time,
+      sm.member_approval_status,
+      CONCAT(u.first_name, ' ', u.last_name) AS partner_name,
+      sm.split_amount AS partner_share,
+      (e.expense_amount - sm.split_amount) AS you_share,
+      ROUND((sm.split_amount / e.expense_amount) * 100, 2) AS partner_percentage
+    FROM Expense e
+    JOIN SplitHistory sh ON e.expense_id = sh.expense_id
+    JOIN SplitMember sm ON sh.split_id = sm.split_id
+    JOIN UserAccount u ON sm.account_id = u.account_id
+    WHERE e.account_id = ?
+    AND sm.member_approval_status IS NOT NULL
+    ORDER BY e.expense_date_time DESC
+    `,
+    [accountId]);
+
+  res.json(rows);
+} catch (err) {
+  console.error(err);
+  res.status(500).send("Error fetching expenses");
+}
 });
 
 // Get all pending requests going toward one account
@@ -215,6 +254,7 @@ app.get("/api/requests/notpending", async (req, res) => {
       JOIN UserAccount u ON e.account_id = u.account_id
       WHERE sm.member_approval_status IS NOT NULL
       AND sm.account_id = ?
+      ORDER BY e.expense_date_time DESC
       `, [accountId]);
 
     res.json(rows);
@@ -224,11 +264,50 @@ app.get("/api/requests/notpending", async (req, res) => {
   }
 });
   
+//Get all contacts owned by one account
+app.get("/api/contacts", async (req, res) => {
+  const accountId = req.query.account_id;
+
+  if (!accountId) {
+    return res.status(400).json({ error: "Missing account_id" });
+  }
+  
+  try {
+    const [rows] = await db.query(
+      `
+      SELECT * FROM
+      (
+      SELECT
+        c.contact_id AS account_id,
+        u.first_name,
+        u.last_name
+      FROM Contact c
+      JOIN UserAccount u ON c.contact_id = u.account_id
+      WHERE c.account_id = ?
+      ) AS s
+      UNION
+      (
+      SELECT
+        c.account_id,
+        u.first_name,
+        u.last_name
+      FROM Contact c
+      JOIN UserAccount u ON c.account_id = u.account_id
+      WHERE c.contact_id = ?
+      )
+      `, [accountId, accountId]);
+
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error fetching contacts");
+  }
+});
 
 //UPDATED Thomas: get contact data with split counter (counts all particapted splits in split members)
 //UPDATED Thomas: pulling email from contacts
 //Get all contacts owned by one account
-app.get("/api/contacts", async (req, res) => {
+app.get("/api/contactsinfo", async (req, res) => {
   const accountId = req.query.account_id;
   if (!accountId) return res.status(400).json({ error: "Missing account_id" });
 
@@ -626,7 +705,7 @@ app.put('/api/accounts/darkmode', async (req, res) => {
 app.put('/api/splitmember', async (req, res) => {
   const { split_id, account_id, member_approval_status } = req.body;
 
-  if (!split_id || !account_id || !member_approval_status) {
+  if (!split_id || !account_id) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
