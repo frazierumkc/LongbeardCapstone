@@ -224,38 +224,60 @@ app.get("/api/requests/notpending", async (req, res) => {
   }
 });
   
+
+//UPDATED Thomas: get contact data with split counter (counts all particapted splits in split members)
+//UPDATED Thomas: pulling email from contacts
 //Get all contacts owned by one account
 app.get("/api/contacts", async (req, res) => {
   const accountId = req.query.account_id;
+  if (!accountId) return res.status(400).json({ error: "Missing account_id" });
 
-  if (!accountId) {
-    return res.status(400).json({ error: "Missing account_id" });
-  }
-  
   try {
     const [rows] = await db.query(
       `
-      SELECT * FROM
-      (
       SELECT
-        c.contact_id AS account_id,
-        u.first_name,
-        u.last_name
-      FROM Contact c
-      JOIN UserAccount u ON c.contact_id = u.account_id
-      WHERE c.account_id = ?
+        s.contact_id,
+        s.first_name,
+        s.last_name,
+        s.email,                   -- add this
+        COALESCE(sp.split_count, 0) AS split_count
+      FROM (
+        SELECT
+          c.contact_id,
+          u.first_name,
+          u.last_name,
+          u.email                 -- and this
+        FROM Contact c
+        JOIN UserAccount u
+          ON c.contact_id = u.account_id
+        WHERE c.account_id = ?
+
+        UNION
+
+        SELECT
+          c.account_id AS contact_id,
+          u.first_name,
+          u.last_name,
+          u.email                 -- and here
+        FROM Contact c
+        JOIN UserAccount u
+          ON c.account_id = u.account_id
+        WHERE c.contact_id = ?
       ) AS s
-      UNION
-      (
-      SELECT
-        c.account_id,
-        u.first_name,
-        u.last_name
-      FROM Contact c
-      JOIN UserAccount u ON c.account_id = u.account_id
-      WHERE c.contact_id = ?
-      )
-      `, [accountId, accountId]);
+
+      LEFT JOIN (
+        SELECT
+          account_id,
+          COUNT(*) AS split_count
+        FROM SplitMember
+        GROUP BY account_id
+      ) AS sp
+        ON s.contact_id = sp.account_id
+
+      ORDER BY s.first_name, s.last_name;
+      `,
+      [accountId, accountId]
+    );
 
     res.json(rows);
   } catch (err) {
@@ -263,6 +285,8 @@ app.get("/api/contacts", async (req, res) => {
     res.status(500).send("Error fetching contacts");
   }
 });
+
+
 
 // -------------------------------------------------------------------------------------------------------------------
 // POST Section (Inserting new data into the database)
@@ -523,40 +547,56 @@ app.put('/api/accounts/email', async (req, res) => {
   }
 });
 
+
+// UPDATED Thomas: enforce password verification before password update
 // Update an email given by an account id
 app.put('/api/accounts/password', async (req, res) => {
-  const { account_id, password } = req.body;
+  const { account_id, current_password, new_password } = req.body;
 
-  if (!account_id || !password) {
+  if (!account_id || !current_password || !new_password) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
   try {
+    //Verify if current password is correct
+    const [rows] = await db.query(
+      `SELECT password FROM UserAccount WHERE account_id = ?`,
+      [account_id]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ message: 'Account not found' });
+    }
+
+    const actualPassword = rows[0].password;
+
+    if (actualPassword !== current_password) {
+      return res.status(403).json({ message: 'Incorrect current password' });
+    }
+
+    //Update the password
     const [result] = await db.query(
-      `
-      UPDATE UserAccount
-      SET password = ?
-      WHERE account_id = ?
-      `,
-      [password, account_id]
+      `UPDATE UserAccount SET password = ? WHERE account_id = ?`,
+      [new_password, account_id]
     );
 
     if (result.affectedRows === 0) {
-      return res.status(404).json({ message: 'No account with that ID found' });
+      return res.status(500).json({ message: 'Password update failed' });
     }
 
-    res.status(200).json({ message: 'Account password updated'});
+    res.status(200).json({ message: 'Password successfully updated' });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Failed to change account password' });
+    res.status(500).json({ error: 'Failed to update password' });
   }
 });
 
+//UPDATED Thomas: fixed boolean logic for if (!account_id || !darkmode) to prevent 404 error case
 // Update a darkmode settings given by an account id
 app.put('/api/accounts/darkmode', async (req, res) => {
   const { account_id, darkmode } = req.body;
 
-  if (!account_id || !darkmode) {
+  if (account_id === undefined || darkmode === undefined) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
@@ -574,12 +614,13 @@ app.put('/api/accounts/darkmode', async (req, res) => {
       return res.status(404).json({ message: 'No account with that ID found' });
     }
 
-    res.status(200).json({ message: 'Account darkmode setting updated'});
+    res.status(200).json({ message: 'Account darkmode setting updated' });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to change account darkmode setting' });
   }
 });
+
 
 // Update a split to be approved or denied by a given spit member
 app.put('/api/splitmember', async (req, res) => {
@@ -640,8 +681,11 @@ app.put('/api/requests/pending', async (req, res) => {
   }
 });
 
+
+
+//UPDATED Thomas: Contacts symmetric deletion
 // -------------------------------------------------------------------------------------------------------------------
-// DELETE Section (Deleting existing data from the database)
+// DELETE Section (Update: Symmetric deletion - either user may remove the contact)
 // -------------------------------------------------------------------------------------------------------------------
 
 app.delete('/api/contacts', async (req, res) => {
@@ -649,33 +693,46 @@ app.delete('/api/contacts', async (req, res) => {
   const contactId = req.query.contact_id;
 
   try {
-    // Check if it exists first
+    // Check if the relationship exists in either direction
     const [check] = await db.query(
       `
       SELECT * FROM Contact
-      WHERE account_id = ?
-      AND contact_id = ?
+      WHERE (account_id = ? AND contact_id = ?)
+         OR (account_id = ? AND contact_id = ?)
       `,
-      [accountId ,contactId]);
+      [accountId, contactId, contactId, accountId]
+    );
+
     if (check.length === 0) {
       return res.status(404).json({ error: 'Contact not found' });
     }
 
+    // Delete the relationship from either direction
     await db.query(
       `
       DELETE FROM Contact
-      WHERE account_id = ?
-      AND contact_id = ?
-      `, 
-      [accountId, contactId]);
+      WHERE (account_id = ? AND contact_id = ?)
+         OR (account_id = ? AND contact_id = ?)
+      `,
+      [accountId, contactId, contactId, accountId]
+    );
 
     res.json({ message: 'Contact deleted successfully' });
   } catch (err) {
-    console.error(err);
+    console.error("Failed to delete contact:", err);
     res.status(500).json({ error: 'Failed to delete contact' });
   }
 });
 
+
+
+
+
+
+
+
+
+//Connection Output message
 app.listen(8080, () => {
   console.log("Server is running on http://localhost:8080");
 });
