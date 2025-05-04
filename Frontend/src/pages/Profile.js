@@ -5,11 +5,15 @@ import axios from 'axios';
 //Profile & Settings
 
 const Profile = () => {
+  // Id of currently logged in user
+  const getCurrentId = () => {
+    return localStorage.getItem('currentId');
+  };
+  const currentId = getCurrentId();
   
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [accountBalance, setAccountBalance] = useState(0);
-  const userId = '1'; // Login FixMe: Replace with dynamic user id
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -27,7 +31,7 @@ const Profile = () => {
 
   useEffect(() => {
     axios
-      .get(`http://localhost:8080/api/accounts`, { params: { account_id: userId } })
+      .get(`http://localhost:8080/api/accounts`, { params: { account_id: currentId } })
       .then((res) => {
         const data = res.data[0];
         setFirstName(data.first_name);
@@ -37,7 +41,7 @@ const Profile = () => {
       .catch((err) => console.error("Failed to load account data", err));
 
     axios
-      .get(`http://localhost:8080/api/settings`, { params: { account_id: userId } })
+      .get(`http://localhost:8080/api/settings`, { params: { account_id: currentId } })
       .then((res) => {
         const data = res.data[0];
         setEmail(data.email);
@@ -45,7 +49,7 @@ const Profile = () => {
         setNewColorTheme(data.dark_mode === 1 ? 'Dark' : 'Light');
       })
       .catch((err) => console.error("Failed to load settings", err));
-  }, [userId]);
+  }, [currentId]);
 
   const openModal = (type) => {
     if (type === 'firstName') setNewFirstName(firstName);
@@ -65,7 +69,7 @@ const Profile = () => {
   const saveChanges = () => {
     if (modal === 'firstName' && newFirstName.trim()) {
       axios.put('http://localhost:8080/api/accounts/firstname', {
-        account_id: userId,
+        account_id: currentId,
         first_name: newFirstName.trim(),
       });
       setFirstName(newFirstName.trim());
@@ -73,7 +77,7 @@ const Profile = () => {
 
     if (modal === 'lastName' && newLastName.trim()) {
       axios.put('http://localhost:8080/api/accounts/lastname', {
-        account_id: userId,
+        account_id: currentId,
         last_name: newLastName.trim(),
       });
       setLastName(newLastName.trim());
@@ -84,7 +88,7 @@ const Profile = () => {
       if (amt > 0) {
         const newBalance = accountBalance + amt;
         axios.put('http://localhost:8080/api/accounts/balance', {
-          account_id: userId,
+          account_id: currentId,
           balance: newBalance,
         });
         setAccountBalance(newBalance);
@@ -93,7 +97,7 @@ const Profile = () => {
 
     if (modal === 'email' && newEmail.trim()) {
       axios.put('http://localhost:8080/api/accounts/email', {
-        account_id: userId,
+        account_id: currentId,
         email: newEmail.trim(),
       });
       setEmail(newEmail.trim());
@@ -101,7 +105,7 @@ const Profile = () => {
 
     if (modal === 'password' && currentPasswordInput.trim() && newPassword.trim()) {
       axios.put('http://localhost:8080/api/accounts/password', {
-        account_id: userId,
+        account_id: currentId,
         current_password: currentPasswordInput.trim(),
         new_password: newPassword.trim(),
       })
@@ -118,7 +122,7 @@ const Profile = () => {
     if (modal === 'theme') {
       const darkmode = newColorTheme === 'Dark' ? 1 : 0;
       axios.put('http://localhost:8080/api/accounts/darkmode', {
-        account_id: userId,
+        account_id: currentId,
         darkmode: darkmode,
       });
       setColorTheme(newColorTheme);
@@ -203,7 +207,6 @@ const Profile = () => {
     width: '300px',
     boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
     position: 'relative',
-    border: 'none',
     border: "2px solid white",  //white border around data boxes
 
   };
@@ -233,7 +236,7 @@ const Profile = () => {
           <h2 style={{ textAlign: 'center' }}>Profile</h2>
           <div style={boxStyle}><strong>First Name:</strong><span>{firstName}<button onClick={() => openModal('firstName')} style={buttonStyle}>Change</button></span></div>
           <div style={boxStyle}><strong>Last Name:</strong><span>{lastName}<button onClick={() => openModal('lastName')} style={buttonStyle}>Change</button></span></div>
-          <div style={boxStyle}><strong>User ID:</strong><span>{userId}</span></div>
+          <div style={boxStyle}><strong>User ID:</strong><span>{currentId}</span></div>
           <div style={boxStyle}>
             <strong>Balance:</strong>
             <span>${accountBalance.toFixed(2)}

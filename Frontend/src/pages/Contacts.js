@@ -1,8 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 
 const Contacts = () => {
-  const accountId = "1"; // Replace with logged-in user ID when available
+  // Id of currently logged in user
+  const getCurrentId = () => {
+    return localStorage.getItem('currentId');
+  };
+  const currentId = getCurrentId();
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -12,10 +16,10 @@ const Contacts = () => {
   const [searchUserId, setSearchUserId] = useState(""); // for finding user to add
 
   //including email and split count
-  const fetchContacts = () => {
+  const fetchContacts = useCallback(() => {
     axios
-      .get("http://localhost:8080/api/contacts", {
-        params: { account_id: accountId },
+      .get("http://localhost:8080/api/contactsinfo", {
+        params: { account_id: currentId },
       })
       .then((res) => {
         const formatted = res.data.map((c) => ({
@@ -28,11 +32,11 @@ const Contacts = () => {
         setContacts(formatted);
       })
       .catch((err) => console.error("Failed to load contacts:", err));
-  };
+  }, [currentId]);
 
   useEffect(() => {
     fetchContacts();
-  }, [accountId]);
+  }, [fetchContacts]);
 
   // Search for a user by ID and prefill name fields
   const handleSearchUser = () => {
@@ -65,7 +69,7 @@ const Contacts = () => {
     if (firstName && lastName && userId) {
       axios
         .post("http://localhost:8080/api/contacts", {
-          account_id: accountId,
+          account_id: currentId,
           contact_id: userId,
           first_name: firstName,
           last_name: lastName,
@@ -91,7 +95,7 @@ const Contacts = () => {
     axios
       .delete("http://localhost:8080/api/contacts", {
         params: {
-          account_id: accountId,
+          account_id: currentId,
           contact_id: contact.contactId,
         },
       })
@@ -221,8 +225,7 @@ const Contacts = () => {
                 border: "none",  
                 borderRadius: "8px",
                 fontWeight: "bold",
-                cursor: "pointer",
-                padding: "8px",       
+                cursor: "pointer",      
                 width: "35px",       
                 height: "28px",       
                 display: "flex",     

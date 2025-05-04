@@ -2,18 +2,45 @@ import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 
 const Dashboard = () => {
+  
+  // Remove later
+  const [inputId, setInputId] = useState('');
+  // Remove Later
+  const setCurrentId = () => {
+    if (inputId.trim()) {
+      localStorage.setItem('currentId', inputId);
+      setInputId('');
+    } else {
+      alert('Please enter a valid user ID.');
+    }
+  };
+  // Remove later
+  const removeCurrentId = () => {
+    localStorage.setItem('currentId', '');
+    setInputId('');
+  };
+
+  // Id of currently logged in user
+  const getCurrentId = () => {
+    return localStorage.getItem('currentId');
+  };
+  const currentId = getCurrentId();
+
   const [showForm, setShowForm] = useState(false);
   const [expense, setExpense] = useState({
     title: "",
     cost: "",
     date: "",
     time: "",
-    partner: "Firstname Lastname",
+    partner: "",
+    partnerId: 0,
     method: "%",
     value: "50", // default value for percentage
+    approvalStatus: "pending",
   });
   const [splitResult, setSplitResult] = useState({ you: 0, partner: 0 });
   const [recentSplits, setRecentSplits] = useState([]);
+  const [contacts, setContacts] = useState([]);
 
   // Function to handle the split calculation based on method and values
   const handleSplitCalculation = useCallback(() => {
@@ -35,8 +62,12 @@ const Dashboard = () => {
 
   // Function to handle change in any input field
   const handleChange = (field, value) => {
-    setExpense({ ...expense, [field]: value });
+    setExpense(prevExpense => ({
+      ...prevExpense,
+      [field]: value
+    }));
   };
+  
 
   // Effect hook to recalculate the split whenever cost, value, or method changes
   useEffect(() => {
@@ -44,6 +75,18 @@ const Dashboard = () => {
       handleSplitCalculation(); // Recalculate the split every time the cost or value changes
     }
   }, [expense.cost, expense.value, expense.method, handleSplitCalculation]); // Depend on cost, value, and method changes
+
+  // Effect hook to get contacts for current account
+  useEffect(() => {
+    axios
+      .get(`http://localhost:8080/api/contacts?account_id=${currentId}`)
+      .then((response) => {
+        setContacts(response.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching contacts:", error);
+      });
+  }, [currentId]);
 
   // Function to handle form submission
   const handleSubmit = () => {
@@ -56,12 +99,15 @@ const Dashboard = () => {
       ...recentSplits,
     ]);
     setShowForm(false);
+    submitExpense(expense.title, expense.cost, `${expense.date} ${expense.time.slice(0, -3)}`, expense.partnerId, splitResult.partner);
     setExpense({
       title: "",
       cost: "",
       date: "",
       time: "",
-      partner: "Firstname Lastname",
+      partner: "",
+      partnerId: "",
+      approvalStatus: "pending",
       method: "%",
       value: "50"})
   };
@@ -104,23 +150,21 @@ const Dashboard = () => {
       cost: "",
       date: "",
       time: "",
-      partner: "Firstname Lastname",
+      partner: "",
+      partnerId: "",
       method: "%",
       value: "50", // reset default value
     }); // Reset the expense state
   };
   
-  // ----------------------------------------------------
-  // Requests Section
-  // ----------------------------------------------------
-
   const [requests, setRequests] = useState([]);
   const [modalData, setModalData] = useState(null);
 
   // Fetch all expenses owned by a single account
-  const fetchExpenses = async () => {
+  const fetchExpenses = useCallback(async () => {
+    
     try {
-      const response = await axios.get("http://localhost:8080/api/expenses?account_id=2");
+      const response = await axios.get(`http://localhost:8080/api/expenses?account_id=${currentId}`);
       const data = response.data;
   
       const parsedExpenses = data.map((exp) => {
@@ -132,9 +176,10 @@ const Dashboard = () => {
           cost: exp.expense_amount.toString(),
           date: exp.expense_date_time.split("T")[0],
           time: new Date(exp.expense_date_time).toLocaleTimeString("en-US", { hour12: true }),
-          partner: exp.partner_name || "Partner", // Optional chaining fallback
+          partner: exp.partner_name,
           method: "%",
-          value: exp.partner_percentage?.toString() || "50",
+          value: exp.partner_percentage?.toString(),
+          approvalStatus: exp.member_approval_status === null ? "pending" : exp.member_approval_status === 1 ? "accept" : "decline",
           splitResult: {
             partner: partnerShare,
             you: youShare,
@@ -146,12 +191,12 @@ const Dashboard = () => {
     } catch (error) {
       console.error("Failed to fetch expenses:", error);
     }
-  };
+  }, [currentId]);
 
   // Fetch all requests toward a single account
-  const fetchRequests = async () => {
+  const fetchRequests = useCallback(async () => {
     try {
-      const response = await axios.get("http://localhost:8080/api/requests/pending?account_id=2");
+      const response = await axios.get(`http://localhost:8080/api/requests/pending?account_id=${currentId}`);
       const data = response.data;
   
       const parsedRequests = data.map((req) => {
@@ -171,24 +216,25 @@ const Dashboard = () => {
     } catch (error) {
       console.error("Failed to fetch requests:", error);
     }
-  };
+  }, [currentId]);
   
   useEffect(() => {
     fetchRequests();
     fetchExpenses();
-  }, []);
+  }, [fetchRequests, fetchExpenses]);
   
   // Submit a single expense
-  const submitExpense = async (expenseTitle, expenseAmount, expenseDateTime) => {
+  const submitExpense = async (expenseTitle, expenseAmount, expenseDateTime, contactId, splitAmount) => {
     const newExpense = {
-      account_id: 2,
+      account_id: getCurrentId(),
       expense_title: expenseTitle,
       expense_amount: expenseAmount,
       expense_date_time: expenseDateTime
     };
   
     try {
-      const response = await fetch('http://localhost:8080/api/expenses', {
+      // Create the expense/split
+      const expenseResponse = await fetch('http://localhost:8080/api/expenses', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -196,13 +242,41 @@ const Dashboard = () => {
         body: JSON.stringify(newExpense),
       });
   
-      const data = await response.json();
-      console.log('Server response:', data);
+      const expenseData = await expenseResponse.json();
+      console.log('Expense created:', expenseData);
+  
+      const { split_id } = expenseData;
+  
+      if (!split_id) {
+        throw new Error('No split_id returned from expense creation');
+      }
+  
+      // Add the contact as a split member
+      await fetch('http://localhost:8080/api/splitmember', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          split_id,
+          account_id: contactId,
+          split_amount: splitAmount,
+        }),
+      });
+
     } catch (error) {
       console.error('Submission error:', error);
     }
   };
-  
+
+  // Accept or decline a split
+  const updateSplit = (splitId, approvalStatus) => {
+      axios.put('http://localhost:8080/api/splitmember', {
+        split_id: splitId,
+        account_id: currentId,
+        member_approval_status: approvalStatus,
+      });
+    }
 
   const confirmResponse = () => {
     if (modalData) {
@@ -211,6 +285,7 @@ const Dashboard = () => {
           req.id === modalData.id ? { ...req, status: modalData.responseType } : req
         )
       );
+      updateSplit(modalData.id, modalData.responseType === "accept" ? true : false);
       setModalData(null);
     }
   };
@@ -236,6 +311,17 @@ const Dashboard = () => {
     backgroundPosition: 'center',
     backgroundRepeat: 'repeat',}}>
       <div style={{ flex: 1.618, padding: '1rem', overflow: "auto" }}>
+
+      {/*Remove later*/}
+      <div style={{ padding: '10px' }}><input
+        type="text"
+        placeholder="Enter User ID"
+        value={inputId}
+        onChange={(e) => setInputId(e.target.value)}
+        style={{ marginRight: '8px' }}
+      />
+      <button onClick={setCurrentId}>Set User ID</button></div>
+
         <h1 style={{ color: "white",  textShadow: "2px 2px 4px rgba(0, 0, 0, 0.5)" }}>Recent Expenses</h1>
         <button
           onClick={() => {
@@ -268,110 +354,124 @@ const Dashboard = () => {
         </button>
 
         {showForm && (
-          <div
-            style={{
-              marginTop: "30px",
-              backgroundColor: "rgba(0,128,0,0.8)",
-              color: "white",
-              padding: "20px",
-              borderRadius: "40px",
-              width: "400px",
-              marginLeft: "auto",
-              marginRight: "auto",
-              boxShadow: "0 4px 8px rgba(0,70,0,0.8)",
-              position: "relative",
-            }}
-          >
-            <div style={{ display: "flex", justifyContent: "space-between", textShadow: "2px 2px 4px rgba(0, 0, 0, 0.4)" }}>
-              <div style={{ textAlign: "left" }}>
-                <div>
-                  <strong>Title:</strong>
-                  <input
-                    type="text"
-                    value={expense.title}
-                    onChange={(e) => handleChange("title", e.target.value)}
-                    style={{ width: "100%", padding: "5px", marginTop: "5px" }}
-                  />
-                </div>
-                <div>
-                  <strong>Cost:</strong>
-                  <input
-                    type="number"
-                    value={expense.cost}
-                    onChange={(e) => handleChange("cost", e.target.value)}
-                    style={{ width: "100%", padding: "5px", marginTop: "5px" }}
-                  />
-                </div>
-                <div>
-                  <strong>Date:</strong> {expense.date}
-                </div>
-                <div>
-                  <strong>Time:</strong> {expense.time}
-                </div>
-              </div>
-              <div style={{ textAlign: "right" }}>
-                <div><strong>{expense.partner}</strong></div>
-                <div>{expense.method === "%" ? `${expense.value || 0}%` : ""}</div>
-                <div>${splitResult.partner.toFixed(2)}</div>
-                <br />
-                <div><strong>You</strong></div>
-                <div>{expense.method === "%" ? `${100 - (parseFloat(expense.value) || 0)}%` : ""}</div>
-                <div>${splitResult.you.toFixed(2)}</div>
-              </div>
-            </div>
-
-            <button
-              onClick={handleSubmit}
-              disabled={isSubmitDisabled()}
-              style={{
-                margin: "20px auto",
-                display: "block",
-                backgroundColor: "rgba(0,112,51,1)",
-                color: "white",
-                padding: "10px 20px",
-                borderRadius: "30px",
-                border: "none",
-                fontWeight: "bold",
-                fontSize: "1rem",
-                cursor: isSubmitDisabled() ? "not-allowed" : "pointer",
-              }}
-            >
-              SUBMIT SPLIT
-            </button>
-
-            <div style={{ textAlign: "left", marginTop: "10px" }}>
-              <label>Split with:</label>
-              <select
-                value={expense.partner}
-                onChange={(e) => handleChange("partner", e.target.value)}
-                style={{ width: "100%", padding: "5px", marginTop: "5px" }}
-              >
-                <option>Firstname Lastname</option>
-                <option>Jane Smith</option>
-              </select>
-
-              <label style={{ marginTop: "10px", display: "block" }}>
-                {expense.partner} will pay:
-              </label>
-              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                <select
-                  value={expense.method}
-                  onChange={(e) => handleChange("method", e.target.value)}
-                  style={{ width: "60px", padding: "5px" }}
-                >
-                  <option value="%">%</option>
-                  <option value="$">$</option>
-                </select>
+        <div
+          style={{
+            marginTop: "30px",
+            backgroundColor: "rgba(0,128,0,0.8)",
+            color: "white",
+            padding: "20px",
+            borderRadius: "40px",
+            width: "400px",
+            marginLeft: "auto",
+            marginRight: "auto",
+            boxShadow: "0 4px 8px rgba(0,70,0,0.8)",
+            position: "relative",
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", textShadow: "2px 2px 4px rgba(0, 0, 0, 0.4)" }}>
+            <div style={{ textAlign: "left" }}>
+              <div>
+                <strong>Title:</strong>
                 <input
-                  type="number"
-                  value={expense.value}
-                  onChange={(e) => handleChange("value", e.target.value)}
-                  style={{ width: "100%", padding: "5px" }}
+                  type="text"
+                  value={expense.title}
+                  onChange={(e) => handleChange("title", e.target.value)}
+                  style={{ width: "100%", padding: "5px", marginTop: "5px", borderRadius: "30px" }}
                 />
               </div>
+              <div>
+                <strong>Cost:</strong>
+                <input
+                  type="number"
+                  value={expense.cost}
+                  onChange={(e) => handleChange("cost", e.target.value)}
+                  style={{ width: "100%", padding: "5px", marginTop: "5px", borderRadius: "30px" }}
+                />
+              </div>
+              <div>
+                <strong>Date:</strong> {expense.date}
+              </div>
+              <div>
+                <strong>Time:</strong> {expense.time}
+              </div>
+            </div>
+            <div style={{ textAlign: "right" }}>
+              <div><strong>{expense.partner}</strong></div>
+              <div>{expense.method === "%" ? `${expense.value || 0}%` : ""}</div>
+              <div>{expense.method === "%" ? `$${(expense.cost * (expense.value / 100)).toFixed(2)}` : `$${expense.value}`}</div>
+              <br />
+              <div><strong>You</strong></div>
+              <div>{expense.method === "%" ? `${100 - (parseFloat(expense.value) || 0)}%` : ""}</div>
+              <div>{expense.method === "%" ? `$${(expense.cost * (1 - expense.value / 100)).toFixed(2)}` : `$${(expense.cost - expense.value).toFixed(2)}`}</div>
             </div>
           </div>
-        )}
+
+          <div style={{ textAlign: "left", marginTop: "10px" }}>
+            <label>Split with:</label>
+            <select
+  value={expense.partnerId} // use partnerId to keep it consistent
+  onChange={(e) => {
+    const selectedContact = contacts.find(
+      (contact) => contact.account_id.toString() === e.target.value
+    );
+    if (selectedContact) {
+      handleChange("partner", `${selectedContact.first_name} ${selectedContact.last_name}`);
+      handleChange("partnerId", selectedContact.account_id);
+    }
+  }}
+  style={{ width: "100%", padding: "5px", marginTop: "5px", borderRadius: "30px" }}
+>
+  <option value="">Select Partner</option>
+  {contacts.map((contact) => (
+    <option key={contact.account_id} value={contact.account_id}>
+      {contact.first_name} {contact.last_name}
+    </option>
+  ))}
+</select>
+
+
+            <label style={{ marginTop: "10px", display: "block" }}>
+              {expense.partner} will pay:
+            </label>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <select
+                value={expense.method}
+                onChange={(e) => handleChange("method", e.target.value)}
+                style={{ width: "60px", padding: "5px", borderRadius: "30px" }}
+              >
+                <option value="%">%</option>
+                <option value="$">$</option>
+              </select>
+              <input
+                type="number"
+                value={expense.value}
+                onChange={(e) => handleChange("value", e.target.value)}
+                style={{ width: "100%", padding: "5px", borderRadius: "30px" }}
+              />
+            </div>
+          </div>
+
+          <button
+            onClick={handleSubmit}
+            disabled={isSubmitDisabled()}
+            style={{
+              margin: "20px auto",
+              marginBottom: "0px",
+              display: "block",
+              backgroundColor: "#4caf50",
+              color: "white",
+              padding: "10px 20px",
+              borderRadius: "30px",
+              border: "none",
+              fontWeight: "bold",
+              fontSize: "1rem",
+              cursor: isSubmitDisabled() ? "not-allowed" : "pointer",
+            }}
+          >
+            SUBMIT SPLIT
+          </button>
+        </div>
+      )}
 
         {recentSplits.length > 0 && (
           <div style={{ marginTop: "40px" }}>
@@ -405,6 +505,7 @@ const Dashboard = () => {
                       <div>
                         <strong>Time:</strong> {split.time}
                       </div>
+                      <span>{split.approvalStatus === "pending" ? "🟡 Pending" : split.approvalStatus === "accept" ? "✅ Accepted": "❌ Declined"}</span>
                     </div>
                     <div style={{ textAlign: "right" }}>
                       <div><strong>{split.partner}</strong></div>
@@ -441,10 +542,25 @@ const Dashboard = () => {
             }}
           >
             <h2 style={{margin: 0}}>{req.title}</h2>
-            <p><strong>Requested by:</strong> {req.partner}</p>
-            <p><strong>Cost:</strong> ${req.cost}</p>
-            <p><strong>Date:</strong> {req.date} at {req.time}</p>
-            <p><strong>Requested of you:</strong> {req.value}</p>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'flex-start',
+              marginTop: '0.5rem',
+              gap: '2rem'
+            }}>
+              {/* Left column */}
+              <div style={{ flex: 1, textAlign: 'left' }}>
+                <p><strong>Requested by:</strong> {req.partner}</p>
+                <p><strong>Date:</strong> {req.date} at {req.time}</p>
+              </div>
+
+              {/* Right column */}
+              <div style={{ flex: 1, textAlign: 'left' }}>
+                <p><strong>Total cost:</strong> ${req.cost}</p>
+                <p><strong>Requested of you:</strong> ${req.value}</p>
+              </div>
+            </div>
             <div style={{ marginTop: '0.5rem' }}>
               {req.status === 'pending' ? (
                 <>
@@ -475,8 +591,17 @@ const Dashboard = () => {
                   </button>
                 </>
               ) : (
-                <span style={{ color: req.status === 'accept' ? 'green' : 'red', fontWeight: 'bold' }}>
-                  {req.status.toUpperCase()}
+                <span
+                  style={{
+                    backgroundColor: req.status === 'accept' ? '#4caf50' : 'red',
+                    color: 'white',
+                    fontWeight: 'bold',
+                    padding: '0.3rem 0.6rem',
+                    borderRadius: '30px',
+                    display: 'inline-block',
+                  }}
+                >
+                  {req.status === 'accept' ? 'ACCEPTED' : 'DECLINED'}
                 </span>
               )}
             </div>
