@@ -10,6 +10,7 @@ const History = () => {
 
   const [initiatedSplits, setInitiatedSplits] = useState([]);
   const [receivedSplits, setReceivedSplits] = useState([]);
+  const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
     // Fetch splits initiated by this user
@@ -47,6 +48,24 @@ const History = () => {
         setReceivedSplits(formatted);
       })
       .catch((err) => console.error("Error fetching received splits:", err));
+  }, [currentId]);
+
+  useEffect(() => {
+    const fetchDarkMode = async () => {
+      try {
+        const response = await axios.get('http://localhost:8080/api/accounts/darkmode', {
+          params: { account_id: currentId },
+        });
+
+        if (response.data.length > 0) {
+          setDarkMode(response.data[0].dark_mode === 1); // Assuming SQL returns 1/0
+        }
+      } catch (error) {
+        console.error('Error fetching dark mode setting:', error);
+      }
+    };
+
+    fetchDarkMode();
   }, [currentId]);
 
   const getStatusStyle = (status) => ({
@@ -112,6 +131,8 @@ const History = () => {
     );
   };
 
+  const backgroundImage = darkMode ? 'url("/triangle_dark.png")' : 'url("/triangle.png")';
+
   return (
     <div style={{
       marginTop: "10vh",
@@ -119,7 +140,7 @@ const History = () => {
       gap: "80px",
       justifyContent: "center",
       height: "90vh",
-      backgroundImage: 'url("/triangle.png")',
+      backgroundImage: backgroundImage,
       backgroundSize: "contain",
       backgroundPosition: 'center',
       backgroundRepeat: "repeat",
