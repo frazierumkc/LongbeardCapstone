@@ -86,7 +86,7 @@ const History = () => {
     color: "white",
     textShadow: "2px 2px 4px rgba(0, 0, 0, 0.4)",
     wordWrap: "break-word",
-    border: "2px solid white",  //white border around data boxes
+    border: "2px solid rgba(166, 166, 166, 0.6)",
   };
 
   const renderSplitCard = (split, isInitiated) => {

@@ -371,6 +371,7 @@ const Dashboard = () => {
             cursor: "pointer",
             transition: "all 0.2s ease",
             boxShadow: "0 4px 6px rgba(0,70,0,0.6)",
+            border: "2px solid rgba(166, 166, 166, 0.4)",
           }}
         >
           {showForm ? "Cancel" : "+ Create new expense"} {/* Change button text */}
@@ -389,6 +390,7 @@ const Dashboard = () => {
             marginRight: "auto",
             boxShadow: "0 4px 8px rgba(0,70,0,0.8)",
             position: "relative",
+            border: "2px solid rgba(166, 166, 166, 0.6)",
           }}
         >
           <div style={{ display: "flex", justifyContent: "space-between", textShadow: "2px 2px 4px rgba(0, 0, 0, 0.4)" }}>
@@ -399,7 +401,7 @@ const Dashboard = () => {
                   type="text"
                   value={expense.title}
                   onChange={(e) => handleChange("title", e.target.value)}
-                  style={{ width: "100%", padding: "5px", marginTop: "5px", borderRadius: "30px" }}
+                  style={{ width: "100%", padding: "5px", marginTop: "5px", borderRadius: "30px", border: 'none' }}
                 />
               </div>
               <div>
@@ -408,7 +410,7 @@ const Dashboard = () => {
                   type="number"
                   value={expense.cost}
                   onChange={(e) => handleChange("cost", e.target.value)}
-                  style={{ width: "100%", padding: "5px", marginTop: "5px", borderRadius: "30px" }}
+                  style={{ width: "100%", padding: "5px", marginTop: "5px", borderRadius: "30px", border: 'none'  }}
                 />
               </div>
               <div>
@@ -442,7 +444,7 @@ const Dashboard = () => {
       handleChange("partnerId", selectedContact.account_id);
     }
   }}
-  style={{ width: "100%", padding: "5px", marginTop: "5px", borderRadius: "30px" }}
+  style={{ width: "100%", padding: "5px", marginTop: "5px", borderRadius: "30px", border: 'none'  }}
 >
   <option value="">Select Partner</option>
   {contacts.map((contact) => (
@@ -460,7 +462,7 @@ const Dashboard = () => {
               <select
                 value={expense.method}
                 onChange={(e) => handleChange("method", e.target.value)}
-                style={{ width: "60px", padding: "5px", borderRadius: "30px" }}
+                style={{ width: "60px", padding: "5px", borderRadius: "30px", border: 'none'  }}
               >
                 <option value="%">%</option>
                 <option value="$">$</option>
@@ -469,7 +471,7 @@ const Dashboard = () => {
                 type="number"
                 value={expense.value}
                 onChange={(e) => handleChange("value", e.target.value)}
-                style={{ width: "100%", padding: "5px", borderRadius: "30px" }}
+                style={{ width: "100%", padding: "5px", borderRadius: "30px", border: 'none'  }}
               />
             </div>
           </div>
@@ -512,6 +514,7 @@ const Dashboard = () => {
                     marginRight: "auto",
                     boxShadow: "0 4px 8px rgba(0,70,0,0.8)",
                     marginBottom: "20px",
+                    border: "2px solid rgba(166, 166, 166, 0.6)",
                   }}
                 >
                   <div style={{ display: "flex", justifyContent: "space-between", textShadow: "2px 2px 4px rgba(0, 0, 0, 0.4)" }}>

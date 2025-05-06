@@ -129,7 +129,7 @@ const Contacts = () => {
     marginBottom: "5px",
     padding: "5px",
     borderRadius: "10px",
-    border: "2px solid black",
+    border: "2px solid rgba(166, 166, 166, 0.6)",
     backgroundColor: "white",
     color: "black",
   };
@@ -146,7 +146,7 @@ const Contacts = () => {
     boxShadow: "0 4px 8px rgba(0, 70, 0, 0.8)",
     color: "white",
     textShadow: "2px 2px 4px rgba(0, 60, 0, 0.6)",
-    border: "2px solid white",
+    border: "2px solid rgba(166, 166, 166, 0.6)",
   };
 
   const filteredContacts = contacts.filter((contact) => {
@@ -241,8 +241,8 @@ const Contacts = () => {
               onClick={handleSearchUser}
               style={{
                 padding: "8px 12px",
-                backgroundColor: "#fff",
-                color: "black",
+                backgroundColor: "#129238",
+                color: "white",
                 border: "none",  
                 borderRadius: "8px",
                 fontWeight: "bold",
@@ -252,6 +252,7 @@ const Contacts = () => {
                 display: "flex",     
                 alignItems: "center",
                 justifyContent: "center",
+                boxShadow: "0 2px 5px rgba(0, 70, 0, 0.8)",
               }}
             >
               Find
@@ -283,7 +284,7 @@ const Contacts = () => {
             onClick={handleAddContact}
             style={{
               padding: "10px",
-              backgroundColor: "green",
+              backgroundColor: "#129238",
               color: "white",
               border: "none",
               borderRadius: "20px",
