@@ -14,6 +14,7 @@ const Contacts = () => {
   const [contacts, setContacts] = useState([]);
   const [searchTerm, setSearchTerm] = useState(""); // for filtering contacts
   const [searchUserId, setSearchUserId] = useState(""); // for finding user to add
+  const [darkMode, setDarkMode] = useState(false);
 
   //including email and split count
   const fetchContacts = useCallback(() => {
@@ -37,6 +38,24 @@ const Contacts = () => {
   useEffect(() => {
     fetchContacts();
   }, [fetchContacts]);
+
+  useEffect(() => {
+    const fetchDarkMode = async () => {
+      try {
+        const response = await axios.get('http://localhost:8080/api/accounts/darkmode', {
+          params: { account_id: currentId },
+        });
+
+        if (response.data.length > 0) {
+          setDarkMode(response.data[0].dark_mode === 1); // Assuming SQL returns 1/0
+        }
+      } catch (error) {
+        console.error('Error fetching dark mode setting:', error);
+      }
+    };
+
+    fetchDarkMode();
+  }, [currentId]);
 
   // Search for a user by ID and prefill name fields
   const handleSearchUser = () => {
@@ -139,13 +158,15 @@ const Contacts = () => {
     );
   });
 
+  const backgroundImage = darkMode ? 'url("/triangle_dark.png")' : 'url("/triangle.png")';
+
   return (
     <div
       style={{
         marginTop: "10vh",
         height: "90vh",
         overflow: "auto",
-        backgroundImage: 'url("/triangle.png")',
+        backgroundImage: backgroundImage,
         backgroundSize: "contain",
         backgroundPosition: "center",
         backgroundRepeat: "repeat",

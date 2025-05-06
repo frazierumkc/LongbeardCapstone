@@ -41,6 +41,7 @@ const Dashboard = () => {
   const [splitResult, setSplitResult] = useState({ you: 0, partner: 0 });
   const [recentSplits, setRecentSplits] = useState([]);
   const [contacts, setContacts] = useState([]);
+  const [darkMode, setDarkMode] = useState(false);
 
   // Function to handle the split calculation based on method and values
   const handleSplitCalculation = useCallback(() => {
@@ -88,6 +89,26 @@ const Dashboard = () => {
       });
   }, [currentId]);
 
+  // Fetch dark mode settings on page load
+  useEffect(() => {
+    const fetchDarkMode = async () => {
+      try {
+        const response = await axios.get('http://localhost:8080/api/accounts/darkmode', {
+          params: { account_id: currentId },
+        });
+
+        if (response.data.length > 0) {
+          setDarkMode(response.data[0].dark_mode === 1); // Assuming SQL returns 1/0
+        }
+      } catch (error) {
+        console.error('Error fetching dark mode setting:', error);
+      }
+    };
+
+    fetchDarkMode();
+  }, [currentId]);
+
+  
   // Function to handle form submission
   const handleSubmit = () => {
     handleSplitCalculation();
@@ -298,6 +319,8 @@ const Dashboard = () => {
     setModalData({ id, responseType });
   };
 
+  const backgroundImage = darkMode ? 'url("/triangle_dark.png")' : 'url("/triangle.png")';
+
   // --------------------------------------------------
   // HTML/CSS code
   // --------------------------------------------------
@@ -306,7 +329,7 @@ const Dashboard = () => {
     height: "90vh",
     marginTop: "10vh",
     textAlign: "center",
-    backgroundImage: 'url("/triangle.png")',
+    backgroundImage: backgroundImage,
     backgroundSize: 'contain',
     backgroundPosition: 'center',
     backgroundRepeat: 'repeat',}}>

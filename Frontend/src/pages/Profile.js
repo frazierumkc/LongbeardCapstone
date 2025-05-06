@@ -26,8 +26,27 @@ const Profile = () => {
   const [newPassword, setNewPassword] = useState('');
   const [currentPasswordInput, setCurrentPasswordInput] = useState('');
   const [newColorTheme, setNewColorTheme] = useState(colorTheme);
+  const [darkMode, setDarkMode] = useState(false);
 
   const [modal, setModal] = useState(null);
+
+  useEffect(() => {
+    const fetchDarkMode = async () => {
+      try {
+        const response = await axios.get('http://localhost:8080/api/accounts/darkmode', {
+          params: { account_id: currentId },
+        });
+
+        if (response.data.length > 0) {
+          setDarkMode(response.data[0].dark_mode === 1); // Assuming SQL returns 1/0
+        }
+      } catch (error) {
+        console.error('Error fetching dark mode setting:', error);
+      }
+    };
+
+    fetchDarkMode();
+  }, [currentId]);
 
   useEffect(() => {
     axios
@@ -126,6 +145,7 @@ const Profile = () => {
         darkmode: darkmode,
       });
       setColorTheme(newColorTheme);
+      setDarkMode(darkmode === 1);
     }
 
     closeModal();
@@ -221,10 +241,12 @@ const Profile = () => {
     color: 'white',
   };
 
+  const backgroundImage = darkMode ? 'url("/triangle_dark.png")' : 'url("/triangle.png")';
+
   return (
     <div style={{
       marginTop: "10vh",
-      backgroundImage: 'url("/triangle.png")',
+      backgroundImage: backgroundImage,
       backgroundSize: 'contain',
       backgroundPosition: 'center',
       backgroundRepeat: 'repeat',
@@ -331,9 +353,3 @@ const Profile = () => {
 };
 
 export default Profile;
-
-
-
-
-
-
