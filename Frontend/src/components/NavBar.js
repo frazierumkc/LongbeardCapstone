@@ -4,25 +4,30 @@ import { FaTachometerAlt, FaAddressBook, FaHistory, FaUser } from "react-icons/f
 
 const NavBar = () => {
   const location = useLocation();
+
+  // Hide on landing:
+  if (location.pathname === "/") {
+    return null;
+  }
+
   const navItems = [
     { name: "Dashboard", icon: <FaTachometerAlt /> },
-    { name: "Contacts", icon: <FaAddressBook /> },
-    { name: "History", icon: <FaHistory /> },
-    { name: "Profile", icon: <FaUser /> }
+    { name: "Contacts",  icon: <FaAddressBook /> },
+    { name: "History",   icon: <FaHistory /> },
+    { name: "Profile",   icon: <FaUser /> }
   ];
 
   return (
-    <nav
-      style={{
-        backgroundColor: "#129238",
-        height: "10vh",
-        display: "flex",
-        alignItems: "center",
-        position: "fixed",
-        width: "100vw",
-        top: 0,
-        boxShadow: "0 3px 5px rgba(0,70,0,0.4)",
-        zIndex: 1000
+    <nav style={{
+      backgroundColor: "#129238",
+      height: "10vh",
+      display: "flex",
+      alignItems: "center",
+      position: "fixed",
+      width: "100vw",
+      top: 0,
+      boxShadow: "0 3px 5px rgba(0,70,0,0.4)",
+      zIndex: 1000
       }}
     >
       <div
