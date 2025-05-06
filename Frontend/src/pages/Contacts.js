@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const Contacts = () => {
@@ -15,6 +16,16 @@ const Contacts = () => {
   const [searchTerm, setSearchTerm] = useState(""); // for filtering contacts
   const [searchUserId, setSearchUserId] = useState(""); // for finding user to add
   const [darkMode, setDarkMode] = useState(false);
+
+  const navigate = useNavigate();
+    
+  // If user has not yet logged in
+  useEffect(() => {
+    const userId = localStorage.getItem('currentId');
+    if (!userId) {
+      navigate('/');
+    }
+  }, [navigate]);
 
   //including email and split count
   const fetchContacts = useCallback(() => {

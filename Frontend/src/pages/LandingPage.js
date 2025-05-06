@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../index.css"; // global styles
 
@@ -13,6 +13,14 @@ const LandingPage = () => {
     confirmPassword: ""
   });
   const navigate = useNavigate();
+
+  // If user has already logged in previously
+  useEffect(() => {
+    const userId = localStorage.getItem('currentId');
+    if (userId) {
+      navigate('/dashboard');
+    }
+  }, [navigate]);
 
   // ─── LOGIN ───
   const handleLoginSubmit = async (e) => {

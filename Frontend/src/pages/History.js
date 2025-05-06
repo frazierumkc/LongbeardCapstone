@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const History = () => {
@@ -11,6 +12,16 @@ const History = () => {
   const [initiatedSplits, setInitiatedSplits] = useState([]);
   const [receivedSplits, setReceivedSplits] = useState([]);
   const [darkMode, setDarkMode] = useState(false);
+
+  const navigate = useNavigate();
+  
+  // If user has not yet logged in
+  useEffect(() => {
+    const userId = localStorage.getItem('currentId');
+    if (!userId) {
+      navigate('/');
+    }
+  }, [navigate]);
 
   useEffect(() => {
     // Fetch splits initiated by this user
