@@ -154,11 +154,14 @@ const Profile = () => {
   // Styles
   const containerStyle = {
     display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    marginTop: '5vh',
+    flexDirection: 'row', // horizontal layout
+    justifyContent: 'center', // centers the sections horizontally
+    alignItems: 'stretch',
+    gap: '10vw', // space between the two sections
+    marginTop: '15vh',
     paddingBottom: '80px',
   };
+  
 
   const sectionStyle = {
     backgroundColor: 'rgba(0, 128, 0, 0.8)',
@@ -170,7 +173,7 @@ const Profile = () => {
     width: '90%',
     maxWidth: '400px',
     margin: '20px 0',
-    border: "2px solid white",  //white border around data boxes
+    border: "2px solid rgba(166, 166, 166, 0.6)",
 
   };
 
@@ -190,7 +193,7 @@ const Profile = () => {
     cursor: 'pointer',
     border: 'none',
     borderRadius: '30px',
-    backgroundColor: 'rgba(0,112,51,1)',
+    backgroundColor: '#4caf50',
     color: 'white',
     textShadow: '2px 2px 4px rgba(0, 0, 0, 0.4)',
   };
@@ -348,6 +351,32 @@ const Profile = () => {
           </div>
         </div>
       )}
+
+      {/* Bar at bottom of screen */}
+      <div
+      style={{
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        width: '100vw',
+        backgroundColor: '#129238',
+        color: 'white',
+        padding: '10px 20px',
+        fontSize: '14px',
+        zIndex: 1000,
+        boxShadow: '0 -3px 5px rgba(0,70,0,0.4)',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+      }}
+      >
+        <div style={{ flex: 1, textAlign: 'left' }}>
+          © 2025 Longbeard Crew
+        </div>
+        <div style={{ flex: 1, textAlign: 'right', marginRight: 40 }}>
+          Built with React, Express (Node.js), and MySQL.
+        </div>
+      </div>
     </div>
   );
 };
