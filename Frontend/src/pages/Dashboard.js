@@ -1,24 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const Dashboard = () => {
-  
-  // Remove later
-  const [inputId, setInputId] = useState('');
-  // Remove Later
-  const setCurrentId = () => {
-    if (inputId.trim()) {
-      localStorage.setItem('currentId', inputId);
-      setInputId('');
-    } else {
-      alert('Please enter a valid user ID.');
-    }
-  };
-  // Remove later
-  const removeCurrentId = () => {
-    localStorage.setItem('currentId', '');
-    setInputId('');
-  };
 
   // Id of currently logged in user
   const getCurrentId = () => {
@@ -42,6 +26,16 @@ const Dashboard = () => {
   const [recentSplits, setRecentSplits] = useState([]);
   const [contacts, setContacts] = useState([]);
   const [darkMode, setDarkMode] = useState(false);
+
+  const navigate = useNavigate();
+  
+  // If user has not yet logged in
+  useEffect(() => {
+    const userId = localStorage.getItem('currentId');
+    if (!userId) {
+      navigate('/');
+    }
+  }, [navigate]);
 
   // Function to handle the split calculation based on method and values
   const handleSplitCalculation = useCallback(() => {
@@ -335,16 +329,6 @@ const Dashboard = () => {
     backgroundRepeat: 'repeat',}}>
       <div style={{ flex: 1.618, padding: '1rem', overflow: "auto" }}>
 
-      {/*Remove later*/}
-      <div style={{ padding: '10px' }}><input
-        type="text"
-        placeholder="Enter User ID"
-        value={inputId}
-        onChange={(e) => setInputId(e.target.value)}
-        style={{ marginRight: '8px' }}
-      />
-      <button onClick={setCurrentId}>Set User ID</button></div>
-
         <h1 style={{ color: "white",  textShadow: "2px 2px 4px rgba(0, 0, 0, 0.5)" }}>Recent Expenses</h1>
         <button
           onClick={() => {
@@ -366,7 +350,6 @@ const Dashboard = () => {
             fontSize: "1.2rem",
             backgroundColor: showForm ? "red" : "rgb(0, 128, 0)", // Change button color for cancel
             color: "white",
-            border: "none",
             borderRadius: "30px",
             cursor: "pointer",
             transition: "all 0.2s ease",

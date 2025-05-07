@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 
@@ -29,6 +30,21 @@ const Profile = () => {
   const [darkMode, setDarkMode] = useState(false);
 
   const [modal, setModal] = useState(null);
+
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.setItem('currentId', '');
+    navigate('/');
+  };
+
+  // If user has not yet logged in
+  useEffect(() => {
+    const userId = localStorage.getItem('currentId');
+    if (!userId) {
+      navigate('/');
+    }
+  }, [navigate]);
 
   useEffect(() => {
     const fetchDarkMode = async () => {
@@ -275,6 +291,11 @@ const Profile = () => {
           <div style={boxStyle}><strong>Email:</strong><span>{email}<button onClick={() => openModal('email')} style={buttonStyle}>Change</button></span></div>
           <div style={boxStyle}><strong>Password:</strong><span>{'*'.repeat(password.length)}<button onClick={() => openModal('password')} style={buttonStyle}>Change</button></span></div>
           <div style={boxStyle}><strong>Theme:</strong><span>{colorTheme}<button onClick={() => openModal('theme')} style={buttonStyle}>Change</button></span></div>
+          <div style={{ marginTop: '30px', textAlign: 'center' }}>
+            <button onClick={handleLogout} style={{ ...buttonStyle, backgroundColor: '#d9534f' }}>
+              Logout
+            </button>
+          </div>
         </div>
       </div>
 

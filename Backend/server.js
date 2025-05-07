@@ -803,9 +803,57 @@ app.delete('/api/contacts', async (req, res) => {
   }
 });
 
+// ─────────────── AUTHENTICATION ROUTES ───────────────
 
+// LOGIN: POST /api/auth/login
+// body: { email, password }
+// returns: { account_id } or 401
+app.post('/api/auth/login', async (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password) {
+    return res.status(400).json({ error: 'Email and password required' });
+  }
+  try {
+    const [rows] = await db.query(
+      `SELECT account_id
+         FROM UserAccount
+        WHERE email = ? AND password = ?`,
+      [email, password]
+    );
+    if (rows.length === 0) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+    res.json({ account_id: rows[0].account_id });
+  } catch (err) {
+    console.error('Login error:', err);
+    res.status(500).json({ error: 'Login failed' });
+  }
+});
 
-//Connection Output message
+// SIGN-UP: override existing POST /api/accounts to return only { account_id }
+// body: { first_name, last_name, password, email }
+app.post('/api/accounts', async (req, res) => {
+  const { first_name, last_name, password, email } = req.body;
+  if (!first_name || !last_name || !password || !email) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+  try {
+    const [result] = await db.query(
+      `INSERT INTO UserAccount
+         (first_name, last_name, password, email)
+       VALUES (?, ?, ?, ?)`,
+      [first_name, last_name, password, email]
+    );
+    res.status(201).json({ account_id: result.insertId });
+  } catch (err) {
+    console.error('Sign-up error:', err);
+    res.status(500).json({ error: 'Failed to create account' });
+  }
+});
+
+// --------------------------------------------------
+// START SERVER
+// --------------------------------------------------
 if (require.main === module) {
   const PORT = process.env.PORT || 8080;
   app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
