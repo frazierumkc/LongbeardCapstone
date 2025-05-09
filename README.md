@@ -1,4 +1,6 @@
-# LongbeardCapstone
+# Longbeard Crew
+
+Team members: Dylan Frazier, Thomas Reilly, David Forson, Salman Mirza
 
 Instructions to run:
 
