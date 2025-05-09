@@ -4,7 +4,7 @@ Instructions to run:
 
 Download and extract zip file
 
-Open command terminal in main project folder and run the following commands:
+Open main project folder in command terminal and run the following commands:
 
 ```
 npm install axios
@@ -20,7 +20,7 @@ npx create-react-app folder_name
 
 move all files inside "frontend" folder to new react folder "folder_name" (or whatever other name you chose for it)
 
-Open backend folder in terminal and enter
+Open backend folder in command terminal and enter
 
 ```
 node server.js
