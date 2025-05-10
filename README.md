@@ -6,7 +6,7 @@ Instructions to run:
 
 Download and extract zip file
 
-Open main project folder in command terminal and run the following commands:
+Open main project folder in command terminal and run the following commands (to install dependencies):
 
 ```
 npm install axios
@@ -20,7 +20,9 @@ npm install --save-dev jest supertest
 npx create-react-app folder_name
 ```
 
-move all files inside "frontend" folder to new react folder "folder_name" (or whatever other name you chose for it)
+Move all files inside "frontend" folder to new react folder "folder_name" (or whatever other name you chose for it).
+
+Using a MySQL server tool of your choice, build the database from the "Dump20250509.sql" file in the Database folder (Tested with MySQL Workbench 8.0 CE).
 
 Open backend folder in command terminal and enter
 
